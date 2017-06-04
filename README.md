@@ -7,6 +7,12 @@ Copyright Christos Pontikis http://www.pontikis.net
 
 License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 
+
+Overview - features
+-------------------
+
+ * Write SQL easily and securely
+ * Use Memcached ...
  * Supported RDMBS: MySQLi (or MariaDB), POSTGRESQL
  * For MYSQLi SELECT prepared statements, mysqlnd is required
  * Persistent database connection NOT supported.
@@ -18,8 +24,10 @@ Documenation
 
 See ``docs`` folder
 
-Usage
------
+Usage - examples
+----------------
+
+### Create instance
 
 ```php
 require_once '/path/to/dacapo.class.php';
@@ -49,3 +57,47 @@ $memcached_settings = array(
 
 $ds = new dacapo($db_settings, $memcached_settings);
 ```
+
+### Select
+
+```php
+$sql = 'SELECT id, firstname, lastname FROM customers WHERE lastname LIKE ?';
+$bind_params = array('%' . $str . '%');
+$res = $ds->select($sql, $bind_params);
+if(!$res) {
+	trigger_error($ds->getLastError(), E_USER_ERROR);
+}
+$customers = $ds->getData();
+```
+#### Iterate data
+
+
+
+### Select row
+
+```php
+$sql = 'SELECT * FROM customers WHERE id = ?';
+$bind_params = array($id);
+$query_options = array("get_row" => true);
+$res = $ds->select($sql, $bind_params, $query_options);
+if(!$res) {
+	trigger_error($ds->getLastError(), E_USER_ERROR);
+}
+$customer = $ds->getData();
+```
+
+#### Iterate data
+
+
+### Insert
+
+
+### Update
+
+
+### Delete
+
+### Transactions
+
+
+### Memcached
