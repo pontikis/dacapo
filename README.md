@@ -12,7 +12,7 @@ Overview - features
 -------------------
 
  * Write SQL easily and securely
- * Use Memcached ...
+ * Use Memcached https://memcached.org/
  * Supported RDMBS: MySQLi (or MariaDB), POSTGRESQL
  * For MYSQLi SELECT prepared statements, mysqlnd is required
  * Persistent database connection NOT supported.
