@@ -1,0 +1,7 @@
+<map id="insert" name="insert">
+<area shape="rect" id="node2" href="$classdacapo.html#ac3d2323a92f36b091467a862aad1ac1f" title="_query" alt="" coords="108,9,169,35"/>
+<area shape="rect" id="node3" href="$classdacapo.html#a6aa545dcb7768f0b62d37cdcf7f09adc" title="db_connect" alt="" coords="447,34,536,61"/>
+<area shape="rect" id="node4" href="$classdacapo.html#af3db5e86631a6d488156ebd0353cb133" title="_trigger_error" alt="" coords="584,34,683,61"/>
+<area shape="rect" id="node5" href="$classdacapo.html#a8684f9165f029114d2c02f25e772767a" title="_create_sql" alt="" coords="217,59,307,86"/>
+<area shape="rect" id="node6" href="$classdacapo.html#aed7abed323743e69ebe8bb37d32699b4" title="qstr" alt="" coords="355,59,399,86"/>
+</map>
