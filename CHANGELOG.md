@@ -1,13 +1,18 @@
-Da Capo
+CHANGELOG
 ========
 
-Simple PHP database wrapper
+Da Capo class (Simple PHP database and memcached wrapper)
 
-Copyright [Christos Pontikis][copyright]
-[copyright]: http://www.pontikis.net
+Copyright Christos Pontikis http://www.pontikis.net
 
-License [MIT][mit]
-[mit]: https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
+License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
+
+
+
+Release 0.9.1 (04 Jun 2017)
+---------------------------
+* documentation #4
+* dacapo reconstruction - private vars - getters - setters #3
 
 
 Release 0.9.0 (03 May 2014)
