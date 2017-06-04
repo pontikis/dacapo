@@ -22,7 +22,7 @@ Overview - features
 Documenation
 ------------
 
-See ``docs`` folder
+For HTML documentation, see ``docs/doxygen/html/`` folder.
 
 Usage - examples
 ----------------
