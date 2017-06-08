@@ -11,18 +11,28 @@ License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 Overview - features
 -------------------
 
- * Write SQL easily and securely
- * Use Memcached https://memcached.org/
- * Supported RDMBS: MySQLi (or MariaDB), POSTGRESQL
- * For MYSQLi SELECT prepared statements, mysqlnd is required
- * Persistent database connection NOT supported.
- * BLOB columns NOT supported
- * avoid boolean columns, use integer instead (1,0)
+* Supported RDMBS: MySQLi (or MariaDB), POSTGRESQL
+* Simple and clear syntax
+* Support of prepared statements
+* Support of transactions
+* Use Memcached https://memcached.org/ to cache results (optional)
+* Write SQL easily and securely. Use dacapo ``sql_placeholder`` (? is the default) in place of column values. Dacapo will create SQL prepared statements. Otherwise, set dacapo ``direct_sql`` to true (false is the default)
+
+```php
+$sql = 'SELECT procuct_name FROM products WHERE manufacturer = ? and type IN (?,?,?)';
+```
+ 
+### Remarks 
+ 
+* For MYSQLi SELECT prepared statements, mysqlnd is required
+* Persistent database connection NOT supported.
+* BLOB columns NOT supported
+* avoid boolean columns, use integer instead (1,0)
 
 Documenation
 ------------
 
-For HTML documentation, see ``docs/doxygen/html/`` folder.
+For HTML documentation, see ``docs/doxygen/html/`` folder (open ``index.html`` file in a browser).
 
 Usage - examples
 ----------------
@@ -71,12 +81,20 @@ $customers = $ds->getData();
 ```
 #### Iterate data
 
-
+```php
+if($ds->getNumRows() > 0) {
+	foreach($customers as $customer) {
+		$id = $customer['id'];
+		$lastname = $customer['lastname'];
+		$firstname = $customer['firstname'];
+	}	
+}
+```
 
 ### Select row
 
 ```php
-$sql = 'SELECT * FROM customers WHERE id = ?';
+$sql = 'SELECT firstname, lastname FROM customers WHERE id = ?';
 $bind_params = array($id);
 $query_options = array("get_row" => true);
 $res = $ds->select($sql, $bind_params, $query_options);
@@ -86,7 +104,14 @@ if(!$res) {
 $customer = $ds->getData();
 ```
 
-#### Iterate data
+#### Get row data
+
+```php
+if($ds->getNumRows() == 1) {
+    $firstname = $customer['firstname'];
+    $lastname = $customer['lastname'];
+}
+```
 
 
 ### Insert
