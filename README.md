@@ -21,6 +21,7 @@ Overview - features
 ```php
 $sql = 'SELECT procuct_name FROM products WHERE manufacturer = ? and type IN (?,?,?)';
 ```
+* Use ``$ds->execute()`` to execute one or usually multiple SQL statements (e.g. an SQL script). You cannot use prepared statements here.
 * Support of i18n. Default messages are:
 
 ```php
@@ -216,3 +217,36 @@ if(!$orders) {
 // after order insert or delete
 $ds->delete_from_memcached($mc_key_orders);
 ```
+
+### Utility functions
+
+#### lower
+
+```php
+// check for unique username (CASE IN-SENSITIVE)
+$sql = "SELECT count('id') as total_rows FROM users WHERE {$ds->lower('username')} = ?";
+$bind_params = array(mb_strtolower($username));
+$query_options = array('get_row' => true);
+$res = $ds->select($sql, $bind_params, $query_options);
+if(!$res) {
+	trigger_error($ds->getLastError(), E_USER_ERROR);
+}
+if($ds->getNumRows() > 0) {
+	echo 'Username in use...';
+}
+```
+#### limit
+
+```php
+$limitSQL = $ds->limit($rows_per_page, ($page_num - 1) * $rows_per_page);
+```
+
+#### qstr
+
+Escape and Quote string to be safe for SQL queries.
+
+```php
+$safeSQL = $ds->qstr($str);
+```
+
+However, use of preapared statements is strongly recommended in all cases. 
