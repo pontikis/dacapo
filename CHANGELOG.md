@@ -9,7 +9,7 @@ License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 
 
 
-Release 0.9.1 (04 Jun 2017)
+Release 0.9.1 (08 Jun 2017)
 ---------------------------
 * documentation #4
 * dacapo reconstruction - private vars - getters - setters #3
