@@ -101,7 +101,7 @@ class dacapo {
 		$this->messages = array_key_exists('messages', $a_db) ? $a_db['messages'] : array(
 			'db_not_supported' => 'Dacapo ERROR: Database not supported',
 			'invalid_placeholder' => 'Dacapo ERROR: Invalid placeholder for prepared statements',
-			'invali_number_of_variables' => "Dacapo ERROR: Number of variables (%u) does not match number of parameters in statement (%u)",
+			'invalid_number_of_variables' => "Dacapo ERROR: Number of variables (%u) does not match number of parameters in statement (%u)",
 			'db_connect_error' => 'Dacapo ERROR: Database connection error',
 			'wrong_sql' => 'Dacapo ERROR: Query failed',
 			'query_execution_error' => 'Dacapo ERROR: Error executing query'
