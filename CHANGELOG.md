@@ -8,6 +8,10 @@ Copyright Christos Pontikis http://www.pontikis.net
 License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 
 
+Release 0.9.2 (28 Apr 2018)
+---------------------------
+* composer.json added
+
 
 Release 0.9.1 (08 Jun 2017)
 ---------------------------
