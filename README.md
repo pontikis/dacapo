@@ -8,6 +8,21 @@ Copyright Christos Pontikis http://www.pontikis.net
 License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 
 
+Install 
+--------
+
+using Composer (recommended)
+
+```bash
+composer require pontikis/dacapo
+```
+
+or the old-school way:
+
+```php
+require_once 'path/to/dacapo.class.php';
+```
+
 Overview - features
 -------------------
 
