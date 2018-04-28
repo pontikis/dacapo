@@ -1,0 +1,21 @@
+{
+    "name": "pontikis/dacapo",
+    "description": "Dacapo - Simple PHP database and memcached wrapper",
+    "keywords": ["php", "mysql", "mariadb", "postgresql", "database", "memcached"],
+    "homepage": "https://github.com/pontikis/dacapo",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Christos Pontikis",
+            "email": "pontikis@gmail.com",
+            "homepage": "http://www.pontikis.net"
+        }
+    ],
+    "require": {
+        "php": "^5.4|^7.0"
+    },
+    "autoload": {
+        "classmap": ["dacapo.class.php"]
+    }    
+}
