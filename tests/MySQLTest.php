@@ -17,6 +17,8 @@ final class MySQLTest extends TestCase
 
     ////////////////////////////////////////////////////////////////////
     // Basic setup - it runs once in Class                            //
+    //                                                                //
+    // With localhost port is ignored. Use 127.0.0.1 instead          //
     ////////////////////////////////////////////////////////////////////
     public static function setUpBeforeClass()
     {
