@@ -58,6 +58,14 @@ final class MySQLTest extends TestCase
     ////////////////////////////////////////////////////////////////////
     // Tests for isDateTimeStringInDST()                              //
     ////////////////////////////////////////////////////////////////////
+    public function test00()
+    {
+        $this->assertSame(
+            'myguestbook',
+            $GLOBALS['DB_DBNAME']
+        );
+    }
+
     public function test0()
     {
         $this->assertSame(
