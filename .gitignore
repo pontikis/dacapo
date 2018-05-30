@@ -1,3 +1,11 @@
-# IDE files 
-/.idea/*
+# Sublime Text workspace -------------------------------------------------------
 dacapo.sublime-workspace
+
+# JetBrains PhpStorm IDE files -------------------------------------------------
+/.idea/
+
+# url rewrite (+dev server restricted access) _---------------------------------
+/tests/phpunit.xml
+
+# Dependencies -----------------------------------------------------------------
+/vendor/

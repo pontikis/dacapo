@@ -71,14 +71,36 @@ class dacapo
      * @param array $a_db database settings
      * @param array $a_mc memcached settings
      */
-    public function __construct($a_db, $a_mc)
+    public function __construct(array $a_db, array $a_mc)
     {
         $this->rdbms     = $a_db['rdbms'];
+
+        // RDBMS not supported
+        if (!in_array($this->rdbms, ['MYSQLi', 'POSTGRES'])) {
+            throw new Exception($this->messages['db_not_supported']);
+        }
+
+        // Extension needed
+        if ('MYSQLi' === $this->rdbms) {
+            if (false === extension_loaded('mysqli')) {
+                throw new Exception($this->messages['mysqli_needed']);
+            }
+
+            if (false === extension_loaded('mysqlnd')) {
+                throw new Exception($this->messages['mysqlnd_needed']);
+            }
+        } elseif ('POSTGRES' === $this->rdbms) {
+            if (false === extension_loaded('pgsql')) {
+                throw new Exception($this->messages['pgsql_needed']);
+            }
+        }
+
         $this->db_server = $a_db['db_server'];
         $this->db_user   = $a_db['db_user'];
         $this->db_passwd = $a_db['db_passwd'];
         $this->db_name   = $a_db['db_name'];
 
+        // other params
         $this->db_schema = array_key_exists('db_schema', $a_db) ? $a_db['db_schema'] : null;
         $this->db_port   = array_key_exists('db_port', $a_db) ? $a_db['db_port'] : null;
         $this->charset   = array_key_exists('charset', $a_db) ? $a_db['charset'] : null;
@@ -98,6 +120,9 @@ class dacapo
 
         $this->messages = array_key_exists('messages', $a_db) ? $a_db['messages'] : [
             'db_not_supported'            => 'Dacapo ERROR: Database not supported',
+            'mysqli_needed'               => 'Dacapo ERROR: mysqli extension is needed',
+            'mysqlnd_needed'              => 'Dacapo ERROR: mysqlnd extension is needed',
+            'pgsql_needed'                => 'Dacapo ERROR: pgsql extension is needed',
             'invalid_placeholder'         => 'Dacapo ERROR: Invalid placeholder for prepared statements',
             'invalid_number_of_variables' => 'Dacapo ERROR: Number of variables (%u) does not match number of parameters in statement (%u)',
             'db_connect_error'            => 'Dacapo ERROR: Database connection error',
@@ -115,7 +140,7 @@ class dacapo
         $this->last_error    = null;
         $this->last_errno    = null;
 
-        if (extension_loaded('mysqli')) {
+        if ('MYSQLi' === $this->rdbms) {
             $this->a_fetch_type_mysql = [
                 'ASSOC' => MYSQLI_ASSOC,
                 'NUM'   => MYSQLI_NUM,
@@ -123,7 +148,7 @@ class dacapo
             ];
         }
 
-        if (extension_loaded('pgsql')) {
+        if ('POSTGRES' === $this->rdbms) {
             $this->a_fetch_type_postgres = [
                 'ASSOC' => PGSQL_ASSOC,
                 'NUM'   => PGSQL_NUM,
@@ -147,6 +172,11 @@ class dacapo
 
         $this->mc_settings = $a_mc;
         $this->mc          = null;
+
+        // Invalid placeholder for prepared statements
+        if ($this->use_pst && !in_array($this->pst_placeholder, ['question_mark', 'numbered', 'auto'])) {
+            throw new Exception($this->messages['invalid_placeholder']);
+        }
     }
 
     // PUBLIC FUNCTIONS --------------------------------------------------------
@@ -284,43 +314,38 @@ class dacapo
         $this->last_error = null;
         $this->last_errno = null;
 
-        // RDBMS not supported
-        if (!in_array($this->rdbms, ['MYSQLi', 'POSTGRES'])) {
-            $this->last_error = $this->messages['db_not_supported'] . ': ' . $this->rdbms;
-            $this->_trigger_error();
-
-            return false;
-        }
-
-        // Invalid placeholder for prepared statements
-        if ($this->use_pst && !in_array($this->pst_placeholder, ['question_mark', 'numbered', 'auto'])) {
-            $this->last_error = $this->messages['invalid_placeholder'];
-            $this->_trigger_error();
-
-            return false;
-        }
-
         if (null === $this->conn) {
-            if ('MYSQLi' == $this->rdbms) {
-                try {
-                    if ($this->db_port) {
-                        $conn = new mysqli($this->db_server, $this->db_user, $this->db_passwd, $this->db_name, $this->db_port);
-                    } else {
-                        $conn = new mysqli($this->db_server, $this->db_user, $this->db_passwd, $this->db_name);
-                    }
-                    if ($this->charset) {
-                        $conn->set_charset($this->charset);
-                    }
-                    $this->conn = $conn;
-                } catch (Exception $e) {
-                    $this->last_error = $this->messages['db_connect_error'] . ': ' . $e->getMessage();
-                    $this->_trigger_error();
+            if ('MYSQLi' === $this->rdbms) {
+                mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+                if ($this->db_port) {
+                    $conn = new mysqli(
+                        $this->db_server,
+                        $this->db_user,
+                        $this->db_passwd,
+                        $this->db_name,
+                        (int) $this->db_port
+                    );
+                } else {
+                    $conn = new mysqli(
+                        $this->db_server,
+                        $this->db_user,
+                        $this->db_passwd,
+                        $this->db_name
+                    );
                 }
+                if ($this->charset) {
+                    $conn->set_charset($this->charset);
+                }
+                $this->conn = $conn;
             }
 
-            if ('POSTGRES' == $this->rdbms) {
-                $dsn = 'host=' . $this->db_server . ' port=' . $this->db_port . ' dbname=' . $this->db_name .
-                ' user=' . $this->db_user . ' password=' . $this->db_passwd;
+            if ('POSTGRES' === $this->rdbms) {
+                $dsn = 'host=' . $this->db_server . ' ' .
+                'port=' . $this->db_port . ' ' .
+                'dbname=' . $this->db_name . ' ' .
+                'user=' . $this->db_user . ' ' .
+                'password=' . $this->db_passwd;
 
                 try {
                     if ($this->pg_connect_force_new) {
@@ -939,51 +964,51 @@ class dacapo
             $a_fetch_type = $this->a_fetch_type_postgres;
 
             // proceed to query ------------------------------------------------
-            try {
-                if ($use_prepared_statements) {
-                    $rs = pg_query_params($conn, $this->sql, $bind_params);
-                } else {
-                    $rs = pg_query($conn, $this->sql);
-                }
-
-                if (in_array($mode, ['select'])) {
-                    $this->num_rows = pg_num_rows($rs);
-
-                    while ($row = pg_fetch_array($rs, null, $a_fetch_type[$fetch_type])) {
-                        array_push($a_data, $row);
-                    }
-
-                    $this->data = $a_data;
-                    if ($get_row && $a_data) {
-                        $this->data = $a_data[0];
-                    }
-                }
-
-                if (in_array($mode, ['insert'])) {
-                    // get last inserted value of serial column
-                    if ($sequence) {
-                        if ('auto' == $sequence) {
-                            $a_sql         = explode(' ', $this->sql);
-                            $table_name    = $a_sql[2];
-                            $sequence_name = $table_name . '_id_seq';
-                        } else {
-                            $sequence_name = $sequence;
-                        }
-                        $sql_serial      = "SELECT currval('$sequence_name')";
-                        $rs_serial       = pg_query($conn, $sql_serial);
-                        $this->insert_id = pg_fetch_result($rs_serial, 0, 0);
-                    }
-                }
-
-                if (in_array($mode, ['insert', 'update', 'delete'])) {
-                    $this->affected_rows = pg_affected_rows($rs);
-                }
-            } catch (Exception $e) {
-                $this->last_error = $this->messages['wrong_sql'] . ': ' . $this->sql . '. ' . pg_last_error();
-                $this->_trigger_error($error_level);
-
-                return false;
+            //try {
+            if ($use_prepared_statements) {
+                $rs = pg_query_params($conn, $this->sql, $bind_params);
+            } else {
+                $rs = pg_query($conn, $this->sql);
             }
+
+            if (in_array($mode, ['select'])) {
+                $this->num_rows = pg_num_rows($rs);
+
+                while ($row = pg_fetch_array($rs, null, $a_fetch_type[$fetch_type])) {
+                    array_push($a_data, $row);
+                }
+
+                $this->data = $a_data;
+                if ($get_row && $a_data) {
+                    $this->data = $a_data[0];
+                }
+            }
+
+            if (in_array($mode, ['insert'])) {
+                // get last inserted value of serial column
+                if ($sequence) {
+                    if ('auto' == $sequence) {
+                        $a_sql         = explode(' ', $this->sql);
+                        $table_name    = $a_sql[2];
+                        $sequence_name = $table_name . '_id_seq';
+                    } else {
+                        $sequence_name = $sequence;
+                    }
+                    $sql_serial      = "SELECT currval('$sequence_name')";
+                    $rs_serial       = pg_query($conn, $sql_serial);
+                    $this->insert_id = pg_fetch_result($rs_serial, 0, 0);
+                }
+            }
+
+            if (in_array($mode, ['insert', 'update', 'delete'])) {
+                $this->affected_rows = pg_affected_rows($rs);
+            }
+            //} catch (Exception $e) {
+            //    $this->last_error = 'CUSTOM!!! ' . $this->messages['wrong_sql'] . ': ' . $this->sql . '. ' . pg_last_error();
+            //$this->_trigger_error($error_level);
+
+            //    return false;
+            //}
         }
 
         return true;
