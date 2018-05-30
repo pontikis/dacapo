@@ -58,8 +58,8 @@ final class MySQLTest extends TestCase
     public function test0()
     {
         $this->assertSame(
-            3306,
-            (int) ini_get('mysqli.default_port')
+            $GLOBALS['MYSQL_PORT'],
+            ini_get('mysqli.default_port')
         );
     }
 
