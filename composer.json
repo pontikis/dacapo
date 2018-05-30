@@ -17,5 +17,8 @@
     },
     "autoload": {
         "classmap": ["dacapo.class.php"]
-    }    
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6"
+    }
 }
