@@ -265,3 +265,10 @@ $safeSQL = $ds->qstr($str);
 ```
 
 However, use of preapared statements is strongly recommended in all cases. 
+
+PHPUnit
+-------
+
+```
+./vendor/bin/phpunit --colors --configuration tests/phpunit.xml tests
+```

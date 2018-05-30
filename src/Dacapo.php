@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+namespace Pontikis\Database;
+
+use Exception;
+
 /**
  * Da Capo class (Simple PHP database and memcached wrapper).
  *
@@ -14,8 +20,13 @@
  *
  * @version    0.9.3 (28 Apr 2018)
  */
-class dacapo
+class Dacapo
 {
+    const ERROR_RDBMS_NOT_SUPPORTED = 'Dacapo ERROR: Database not supported';
+    const ERROR_MYSQLI_IS_REQUIRED  = 'Dacapo ERROR: mysqli extension is required';
+    const ERROR_MYSQLND_IS_REQUIRED = 'Dacapo ERROR: mysqlnd extension is required';
+    const ERROR_PGSQL_IS_REQUIRED   = 'Dacapo ERROR: pgsql extension is required';
+
     private $rdbms;
     private $db_server;
     private $db_user;
@@ -73,25 +84,25 @@ class dacapo
      */
     public function __construct(array $a_db, array $a_mc)
     {
-        $this->rdbms     = $a_db['rdbms'];
+        $this->rdbms = $a_db['rdbms'];
 
         // RDBMS not supported
         if (!in_array($this->rdbms, ['MYSQLi', 'POSTGRES'])) {
-            throw new Exception($this->messages['db_not_supported']);
+            throw new Exception(self::ERROR_RDBMS_NOT_SUPPORTED);
         }
 
         // Extension needed
         if ('MYSQLi' === $this->rdbms) {
             if (false === extension_loaded('mysqli')) {
-                throw new Exception($this->messages['mysqli_needed']);
+                throw new Exception(self::ERROR_MYSQLI_IS_REQUIRED);
             }
 
             if (false === extension_loaded('mysqlnd')) {
-                throw new Exception($this->messages['mysqlnd_needed']);
+                throw new Exception(self::ERROR_MYSQLND_IS_REQUIRED);
             }
         } elseif ('POSTGRES' === $this->rdbms) {
             if (false === extension_loaded('pgsql')) {
-                throw new Exception($this->messages['pgsql_needed']);
+                throw new Exception(self::ERROR_PGSQL_IS_REQUIRED);
             }
         }
 
@@ -174,9 +185,9 @@ class dacapo
         $this->mc          = null;
 
         // Invalid placeholder for prepared statements
-        if ($this->use_pst && !in_array($this->pst_placeholder, ['question_mark', 'numbered', 'auto'])) {
-            throw new Exception($this->messages['invalid_placeholder']);
-        }
+        //if ($this->use_pst && !in_array($this->pst_placeholder, ['question_mark', 'numbered', 'auto'])) {
+        //    throw new Exception($this->messages['invalid_placeholder']);
+        //}
     }
 
     // PUBLIC FUNCTIONS --------------------------------------------------------
@@ -319,7 +330,7 @@ class dacapo
                 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
                 if ($this->db_port) {
-                    $conn = new mysqli(
+                    $conn = new \mysqli(
                         $this->db_server,
                         $this->db_user,
                         $this->db_passwd,
@@ -327,7 +338,7 @@ class dacapo
                         (int) $this->db_port
                     );
                 } else {
-                    $conn = new mysqli(
+                    $conn = new \mysqli(
                         $this->db_server,
                         $this->db_user,
                         $this->db_passwd,
@@ -657,7 +668,7 @@ class dacapo
                 $mc_settings = $this->mc_settings;
 
                 $mc_items = 0;
-                $mc       = new Memcached();
+                $mc       = new \Memcached();
                 foreach ($mc_settings['mc_pool'] as $mc_item) {
                     if (array_key_exists('weight', $mc_item)) {
                         $res_mc = $mc->addServer($mc_item['mc_server'], $mc_item['mc_port'], $mc_item['weight']);
