@@ -272,3 +272,11 @@ PHPUnit
 ```
 ./vendor/bin/phpunit --colors --configuration tests/phpunit.xml tests
 ```
+
+or 
+
+```
+./vendor/bin/phpunit --enforce-time-limit --colors --configuration tests/phpunit.xml tests
+```
+
+In this case PHP_Invoker is needed https://github.com/sebastianbergmann/php-invoker

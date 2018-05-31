@@ -7,11 +7,35 @@ use Pontikis\Database\Dacapo;
 
 final class MySQLTest extends TestCase
 {
-    protected static $db;
+    protected static $db_with_server_name;
+
+    protected static $db_with_server_ip;
 
     protected static $db_wrong_rdbms;
 
-    protected static $db_wrong_logins;
+    protected static $db_wrong_server_name;
+
+    protected static $db_wrong_server_ip;
+
+    protected static $db_wrong_user_with_server_name;
+
+    protected static $db_wrong_user_with_server_ip;
+
+    protected static $db_wrong_passwd_with_server_name;
+
+    protected static $db_wrong_passwd_with_server_ip;
+
+    protected static $db_wrong_dbname_with_server_name;
+
+    protected static $db_wrong_dbname_with_server_ip;
+
+    protected static $db_wrong_port_with_server_name;
+
+    protected static $db_wrong_port_with_server_ip;
+
+    protected static $db_wrong_charset_with_server_name;
+
+    protected static $db_wrong_charset_with_server_ip;
 
     protected static $mc;
 
@@ -22,9 +46,9 @@ final class MySQLTest extends TestCase
     ////////////////////////////////////////////////////////////////////
     public static function setUpBeforeClass()
     {
-        self::$db = [
+        self::$db_with_server_name = [
             'rdbms'           => 'MYSQLi',
-            'db_server'       => $GLOBALS['MYSQL_SERVER'],
+            'db_server'       => $GLOBALS['MYSQL_SERVER_NAME'],
             'db_user'         => $GLOBALS['MYSQL_USER'],
             'db_passwd'       => $GLOBALS['MYSQL_PASSWD'],
             'db_name'         => $GLOBALS['MYSQL_DBNAME'],
@@ -36,11 +60,47 @@ final class MySQLTest extends TestCase
             'pst_placeholder' => 'question_mark',
         ];
 
-        self::$db_wrong_rdbms          = self::$db;
-        self::$db_wrong_rdbms['rdbms'] = 'WRONG_RDBMS';
+        self::$db_with_server_ip              = self::$db_with_server_name;
+        self::$db_with_server_ip['db_server'] = $GLOBALS['MYSQL_SERVER_IP'];
 
-        self::$db_wrong_logins              = self::$db;
-        self::$db_wrong_logins['db_passwd'] = 'WRONG_PASSWORD';
+        self::$db_wrong_rdbms          = self::$db_with_server_name;
+        self::$db_wrong_rdbms['rdbms'] = $GLOBALS['RDBMS_WRONG'];
+
+        self::$db_wrong_server_name              = self::$db_with_server_name;
+        self::$db_wrong_server_name['db_server'] = $GLOBALS['MYSQL_SERVER_NAME_WRONG'];
+
+        self::$db_wrong_server_ip              = self::$db_with_server_name;
+        self::$db_wrong_server_ip['db_server'] = $GLOBALS['MYSQL_SERVER_IP_WRONG'];
+
+        self::$db_wrong_user_with_server_name            = self::$db_with_server_name;
+        self::$db_wrong_user_with_server_name['db_user'] = $GLOBALS['MYSQL_USER_WRONG'];
+
+        self::$db_wrong_user_with_server_ip            = self::$db_with_server_ip;
+        self::$db_wrong_user_with_server_ip['db_user'] = $GLOBALS['MYSQL_USER_WRONG'];
+
+        self::$db_wrong_passwd_with_server_name              = self::$db_with_server_name;
+        self::$db_wrong_passwd_with_server_name['db_passwd'] = $GLOBALS['MYSQL_PASSWD_WRONG'];
+
+        self::$db_wrong_passwd_with_server_ip              = self::$db_with_server_ip;
+        self::$db_wrong_passwd_with_server_ip['db_passwd'] = $GLOBALS['MYSQL_PASSWD_WRONG'];
+
+        self::$db_wrong_dbname_with_server_name            = self::$db_with_server_name;
+        self::$db_wrong_dbname_with_server_name['db_name'] = $GLOBALS['MYSQL_DBNAME_WRONG'];
+
+        self::$db_wrong_dbname_with_server_ip            = self::$db_with_server_ip;
+        self::$db_wrong_dbname_with_server_ip['db_name'] = $GLOBALS['MYSQL_DBNAME_WRONG'];
+
+        self::$db_wrong_port_with_server_name            = self::$db_with_server_name;
+        self::$db_wrong_port_with_server_name['db_port'] = $GLOBALS['MYSQL_PORT_WRONG'];
+
+        self::$db_wrong_port_with_server_ip            = self::$db_with_server_ip;
+        self::$db_wrong_port_with_server_ip['db_port'] = $GLOBALS['MYSQL_PORT_WRONG'];
+
+        self::$db_wrong_charset_with_server_name            = self::$db_with_server_name;
+        self::$db_wrong_charset_with_server_name['charset'] = $GLOBALS['MYSQL_CHARSET_WRONG'];
+
+        self::$db_wrong_charset_with_server_ip            = self::$db_with_server_ip;
+        self::$db_wrong_charset_with_server_ip['charset'] = $GLOBALS['MYSQL_CHARSET_WRONG'];
 
         self::$mc = [
             'mc_pool'       => [
@@ -55,19 +115,41 @@ final class MySQLTest extends TestCase
     }
 
     ////////////////////////////////////////////////////////////////////
-    // Tests                                                          //
+    // Test instance                                                  //
     ////////////////////////////////////////////////////////////////////
-    public function test0()
+    public function testInstance1()
     {
-        $this->assertSame(
-            $GLOBALS['MYSQL_PORT'],
-            ini_get('mysqli.default_port')
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+
+        $this->assertInstanceOf(
+            dacapo::class,
+            $ds
         );
     }
 
-    public function test1()
+    public function testInstance2()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+
+        $this->assertInstanceOf(
+            dacapo::class,
+            $ds
+        );
+    }
+
+    public function testInstanceFails1()
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage(dacapo::ERROR_RDBMS_NOT_SUPPORTED);
+        $ds = new Dacapo(self::$db_wrong_rdbms, self::$mc);
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    // Test dbConnect()                                               //
+    ////////////////////////////////////////////////////////////////////
+    public function testConnect1()
+    {
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
 
         $this->assertInstanceOf(
             dacapo::class,
@@ -76,27 +158,121 @@ final class MySQLTest extends TestCase
 
         $this->assertInstanceOf(
             mysqli::class,
-            $ds->db_connect()
+            $ds->dbConnect()
         );
     }
 
-    public function test2()
+    public function testConnect2()
     {
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage(dacapo::ERROR_RDBMS_NOT_SUPPORTED);
-        $ds = new Dacapo(self::$db_wrong_rdbms, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+
+        $this->assertInstanceOf(
+            dacapo::class,
+            $ds
+        );
+
+        $this->assertInstanceOf(
+            mysqli::class,
+            $ds->dbConnect()
+        );
     }
 
-    public function test3()
+    /**
+     * This test will take more than a minute to be executed
+     * (mysqli connection timeout).
+     * To avoid this use --enforce-time-limit.
+     *
+     * @small
+     */
+    public function testConnectFails1()
     {
-        $ds = new Dacapo(self::$db_wrong_logins, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_server_name, self::$mc);
         $this->expectException(mysqli_sql_exception::class);
-        $ds->db_connect();
+        $ds->dbConnect();
     }
 
+    /**
+     * This test will take more than a minute to be executed
+     * (mysqli connection timeout).
+     * To avoid this use --enforce-time-limit.
+     *
+     * @small
+     */
+    public function testConnectFails2()
+    {
+        $ds = new Dacapo(self::$db_wrong_server_ip, self::$mc);
+        $this->expectException(mysqli_sql_exception::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails3()
+    {
+        $ds = new Dacapo(self::$db_wrong_user_with_server_name, self::$mc);
+        $this->expectException(mysqli_sql_exception::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails4()
+    {
+        $ds = new Dacapo(self::$db_wrong_user_with_server_ip, self::$mc);
+        $this->expectException(mysqli_sql_exception::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails5()
+    {
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_name, self::$mc);
+        $this->expectException(mysqli_sql_exception::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails6()
+    {
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip, self::$mc);
+        $this->expectException(mysqli_sql_exception::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails7()
+    {
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_name, self::$mc);
+        $this->expectException(mysqli_sql_exception::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails8()
+    {
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip, self::$mc);
+        $this->expectException(mysqli_sql_exception::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails9()
+    {
+        if ('localhost' === $GLOBALS['MYSQL_SERVER_NAME']) {
+            $this->markTestSkipped(
+              'Using localhost, port is ignored.'
+            );
+        }
+
+        $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
+        $this->expectException(mysqli_sql_exception::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails10()
+    {
+        $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
+        $this->expectException(mysqli_sql_exception::class);
+        $ds->dbConnect();
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    // Test select()                                                  //
+    ////////////////////////////////////////////////////////////////////
     public function test4()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
         $sql           = 'SELECT * FROM customers_en';
         $bind_params   = [];
         $query_options = [];
@@ -109,7 +285,7 @@ final class MySQLTest extends TestCase
 
     public function test5()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
         $sql           = 'SELECT * FROM customers_xx';
         $bind_params   = [];
         $query_options = [];

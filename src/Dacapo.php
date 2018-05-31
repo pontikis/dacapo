@@ -320,7 +320,7 @@ class Dacapo
      *
      * @return bool|mysqli|object|resource|null
      */
-    public function db_connect()
+    public function dbConnect()
     {
         $this->last_error = null;
         $this->last_errno = null;
@@ -400,7 +400,7 @@ class Dacapo
      */
     public function qstr($str)
     {
-        $conn = $this->db_connect();
+        $conn = $this->dbConnect();
         if (!$conn) {
             return false;
         }
@@ -495,7 +495,7 @@ class Dacapo
      */
     public function beginTrans()
     {
-        $conn = $this->db_connect();
+        $conn = $this->dbConnect();
         if (!$conn) {
             return false;
         }
@@ -520,7 +520,7 @@ class Dacapo
      */
     public function commitTrans()
     {
-        $conn = $this->db_connect();
+        $conn = $this->dbConnect();
         if (!$conn) {
             return false;
         }
@@ -545,7 +545,7 @@ class Dacapo
      */
     public function rollbackTrans()
     {
-        $conn = $this->db_connect();
+        $conn = $this->dbConnect();
         if (!$conn) {
             return false;
         }
@@ -581,7 +581,7 @@ class Dacapo
         $this->last_errno = null;
 
         // get database connection ---------------------------------------------
-        $conn = $this->db_connect();
+        $conn = $this->dbConnect();
         if (!$conn) {
             return false;
         }
@@ -808,7 +808,7 @@ class Dacapo
         }
 
         // get database connection ---------------------------------------------
-        $conn = $this->db_connect();
+        $conn = $this->dbConnect();
         if (!$conn) {
             return false;
         }

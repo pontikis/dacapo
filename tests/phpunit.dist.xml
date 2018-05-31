@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit
+    colors="true"
+    timeoutForSmallTests="3"
+    verbose="true">
+    <php>
+        <!-- MySQL -->      
+        <var name="MYSQL_SERVER_NAME" value="localhost" />
+        <var name="MYSQL_SERVER_IP" value="127.0.0.1" />
+        <var name="MYSQL_USER" value="testdb" />
+        <var name="MYSQL_PASSWD" value="testdb" />
+        <var name="MYSQL_DBNAME" value="testdb" />
+        <var name="MYSQL_PORT" value="3306" />  
+        <var name="MYSQL_CHARSET" value="utf8mb4" />                
+        <var name="MYSQL_SERVER_NAME_WRONG" value="nohost" />
+        <var name="MYSQL_SERVER_IP_WRONG" value="999.999.999.999" />
+        <var name="MYSQL_USER_WRONG" value="WRONG" />
+        <var name="MYSQL_PASSWD_WRONG" value="WRONG" />
+        <var name="MYSQL_DBNAME_WRONG" value="WRONG" />
+        <var name="MYSQL_PORT_WRONG" value="111" />  
+        <var name="MYSQL_CHARSET_WRONG" value="utf7" />    
+        <!-- Postgresql -->
+        <var name="POSTGRES_SERVER_NAME" value="localhost" />
+        <var name="POSTGRES_SERVER_IP" value="127.0.0.1" />
+        <var name="POSTGRES_USER" value="testdb" />
+        <var name="POSTGRES_PASSWD" value="testdb" />
+        <var name="POSTGRES_DBNAME" value="testdb" />
+        <var name="POSTGRES_PORT" value="5432" />                
+        <var name="POSTGRES_CHARSET" value="utf8" />                        
+        <var name="POSTGRES_SERVER_NAME_WRONG" value="nohost" />
+        <var name="POSTGRES_SERVER_IP_WRONG" value="999.999.999.999" />
+        <var name="POSTGRES_USER_WRONG" value="WRONG" />
+        <var name="POSTGRES_PASSWD_WRONG" value="WRONG" />
+        <var name="POSTGRES_DBNAME_WRONG" value="WRONG" />
+        <var name="POSTGRES_PORT_WRONG" value="111" />  
+        <var name="POSTGRES_CHARSET_WRONG" value="utf7" />   
+        <!-- Wrong RDBMS -->                   
+        <var name="RDBMS_WRONG" value="WRONG" />        
+    </php>
+</phpunit>
