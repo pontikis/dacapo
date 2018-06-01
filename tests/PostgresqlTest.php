@@ -178,29 +178,27 @@ final class MySQLTest extends TestCase
     }
 
     /**
-     * This test will take more than a minute to be executed
-     * (mysqli connection timeout).
-     * To avoid this use --enforce-time-limit.
-     *
-     * @small
+     * This test will take more than three minutes to be executed
+     * (pg_connect timeout).
+     * To avoid this use POSTGRES_PG_CONNECT_TIMOUT.
      */
     public function testConnectFails1()
     {
         $ds = new Dacapo(self::$db_wrong_server_name, self::$mc);
+        $ds->setPgConnectTimout((int) $GLOBALS['POSTGRES_PG_CONNECT_TIMOUT']);
         $this->expectException(Exception::class);
         $ds->dbConnect();
     }
 
     /**
-     * This test will take more than a minute to be executed
-     * (mysqli connection timeout).
-     * To avoid this use --enforce-time-limit.
-     *
-     * @small
+     * This test will take more than three minutes to be executed
+     * (pg_connect timeout).
+     * To avoid this use POSTGRES_PG_CONNECT_TIMOUT.
      */
     public function testConnectFails2()
     {
         $ds = new Dacapo(self::$db_wrong_server_ip, self::$mc);
+        $ds->setPgConnectTimout((int) $GLOBALS['POSTGRES_PG_CONNECT_TIMOUT']);
         $this->expectException(Exception::class);
         $ds->dbConnect();
     }
@@ -249,11 +247,6 @@ final class MySQLTest extends TestCase
 
     public function testConnectFails9()
     {
-        /*        if ('localhost' === $GLOBALS['POSTGRES_SERVER_NAME']) {
-                    $this->markTestSkipped(
-                      'Using localhost, port is ignored.'
-                    );
-                }*/
         $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
         $this->expectException(Exception::class);
         $ds->dbConnect();

@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- 
+Do not change convertErrorsToExceptions="false" as Dacapo uses its own ErrorHandler in order to convert Errors to Exceptions.
+-->
 <phpunit
     colors="true"
-    convertErrorsToExceptions="false"    
+    convertErrorsToExceptions="false"   
     timeoutForSmallTests="3"
     verbose="true">
+    <!-- 
+    CONFIGURE the credentials of test databases
+    --> 
     <php>
         <!-- MySQL -->      
         <var name="MYSQL_SERVER_NAME" value="localhost" />
@@ -27,7 +33,8 @@
         <var name="POSTGRES_PASSWD" value="testdb" />
         <var name="POSTGRES_DBNAME" value="testdb" />
         <var name="POSTGRES_PORT" value="5432" />                
-        <var name="POSTGRES_CHARSET" value="utf8" />                        
+        <var name="POSTGRES_CHARSET" value="utf8" />     
+        <var name="POSTGRES_PG_CONNECT_TIMOUT" value="5" />                                
         <var name="POSTGRES_SERVER_NAME_WRONG" value="nohost" />
         <var name="POSTGRES_SERVER_IP_WRONG" value="999.999.999.999" />
         <var name="POSTGRES_USER_WRONG" value="WRONG" />

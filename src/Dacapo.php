@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Pontikis\Database;
 
-use Exception;
 use ErrorException;
+use Exception;
 
 /**
  * Da Capo class (Simple PHP database and memcached wrapper).
@@ -39,6 +39,7 @@ class Dacapo
     private $charset;
 
     private $pg_connect_force_new;
+    private $pg_connect_timeout;
 
     /** @var bool Use prepared statements or not */
     private $use_pst;
@@ -113,9 +114,10 @@ class Dacapo
         $this->db_name   = $a_db['db_name'];
 
         // other params
-        $this->db_schema = array_key_exists('db_schema', $a_db) ? $a_db['db_schema'] : null;
-        $this->db_port   = array_key_exists('db_port', $a_db) ? $a_db['db_port'] : null;
-        $this->charset   = array_key_exists('charset', $a_db) ? $a_db['charset'] : null;
+        $this->db_schema          = array_key_exists('db_schema', $a_db) ? $a_db['db_schema'] : null;
+        $this->db_port            = array_key_exists('db_port', $a_db) ? $a_db['db_port'] : null;
+        $this->charset            = array_key_exists('charset', $a_db) ? $a_db['charset'] : null;
+        $this->pg_connect_timeout = array_key_exists('pg_connect_timeout', $a_db) ? $a_db['pg_connect_timeout'] : null;
 
         $this->pg_connect_force_new = array_key_exists('pg_connect_force_new', $a_db) ? $a_db['pg_connect_force_new'] : false;
 
@@ -191,7 +193,17 @@ class Dacapo
         //}
     }
 
-    // PUBLIC FUNCTIONS --------------------------------------------------------
+    public function getPgConnectTimout()
+    {
+        return $this->pg_connect_timeout;
+    }
+
+    public function setPgConnectTimout(int $seconds)
+    {
+        $this->pg_connect_timeout = $seconds;
+
+        return $this;
+    }
 
     // getters -----------------------------------------------------------------
 
@@ -359,6 +371,10 @@ class Dacapo
                 'dbname=' . $this->db_name . ' ' .
                 'user=' . $this->db_user . ' ' .
                 'password=' . $this->db_passwd;
+
+                if ($this->pg_connect_timeout) {
+                    $dsn .= ' connect_timeout=' . $this->pg_connect_timeout;
+                }
 
                 set_error_handler([$this, 'dacapoErrorHandler'], E_ALL);
 
@@ -744,6 +760,35 @@ class Dacapo
         return ['code' => $mc->getResultCode(), 'msg' => $mc->getResultMessage()];
     }
 
+    /**
+     * Error handler function. Replaces PHP's error handler.
+     *
+     * E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING are always handled by PHP.
+     * E_WARNING, E_NOTICE, E_USER_ERROR, E_USER_WARNING, E_USER_NOTICE are handled by this function.
+     *
+     * @param int    $err_no
+     * @param string $err_str
+     * @param string $err_file
+     * @param int    $err_line
+     *
+     * @throws ErrorException
+     */
+    public function dacapoErrorHandler(
+        int $err_no,
+        string $err_str,
+        string $err_file,
+        int $err_line
+    ) {
+        // if error_reporting is set to 0, exit. This is also the case when using @
+        if (!error_reporting()) {
+            return;
+        }
+
+        // throw ErrorException
+        $message = 'ErrNo=' . $err_no . ' (' . $this->getFriendlyErrorType($err_no) . ') ' . $err_str;
+        throw new ErrorException($message, $err_no, $err_no, $err_file, $err_line);
+    }
+
     // PRIVATE FUNCTIONS -------------------------------------------------------
 
     /**
@@ -1119,35 +1164,6 @@ class Dacapo
     }
 
     /**
-     * Error handler function. Replaces PHP's error handler.
-     *
-     * E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING are always handled by PHP.
-     * E_WARNING, E_NOTICE, E_USER_ERROR, E_USER_WARNING, E_USER_NOTICE are handled by this function.
-     *
-     * @param int    $err_no
-     * @param string $err_str
-     * @param string $err_file
-     * @param int    $err_line
-     *
-     * @throws ErrorException
-     */
-    public function dacapoErrorHandler(
-        int $err_no,
-        string $err_str,
-        string $err_file,
-        int $err_line
-    ) {
-        // if error_reporting is set to 0, exit. This is also the case when using @
-        if (!error_reporting()) {
-            return;
-        }
-
-        // throw ErrorException
-        $message = 'ErrNo=' . $err_no . ' (' . $this->getFriendlyErrorType($err_no) . ') ' . $err_str;
-        throw new ErrorException($message, $err_no, $err_no, $err_file, $err_line);
-    }    
-
-    /**
      * @param int $type
      *
      * @return string
@@ -1189,5 +1205,4 @@ class Dacapo
 
         return 'UNKNOWN ERROR';
     }
-
 }

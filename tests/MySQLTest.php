@@ -179,6 +179,7 @@ final class MySQLTest extends TestCase
      * This test will take more than a minute to be executed
      * (mysqli connection timeout).
      * To avoid this use --enforce-time-limit.
+     * (you cannot set mysqli connect timeout unless you use mysqli_real_connect()).
      *
      * @small
      */
@@ -193,6 +194,7 @@ final class MySQLTest extends TestCase
      * This test will take more than a minute to be executed
      * (mysqli connection timeout).
      * To avoid this use --enforce-time-limit.
+     * (you cannot set mysqli connect timeout unless you use mysqli_real_connect()).
      *
      * @small
      */
