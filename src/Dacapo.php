@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pontikis\Database;
 
 use Exception;
+use ErrorException;
 
 /**
  * Da Capo class (Simple PHP database and memcached wrapper).
@@ -327,6 +328,7 @@ class Dacapo
 
         if (null === $this->conn) {
             if ('MYSQLi' === $this->rdbms) {
+                // force mysqli to throw mysqli_sql_exception for errors instead of warnings
                 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
                 if ($this->db_port) {
@@ -358,17 +360,16 @@ class Dacapo
                 'user=' . $this->db_user . ' ' .
                 'password=' . $this->db_passwd;
 
-                try {
-                    if ($this->pg_connect_force_new) {
-                        $conn = pg_connect($dsn, PGSQL_CONNECT_FORCE_NEW);
-                    } else {
-                        $conn = pg_connect($dsn);
-                    }
-                    $this->conn = $conn;
-                } catch (Exception $e) {
-                    $this->last_error = $this->messages['db_connect_error'] . ': ' . $e->getMessage();
-                    $this->_trigger_error();
+                set_error_handler([$this, 'dacapoErrorHandler'], E_ALL);
+
+                if ($this->pg_connect_force_new) {
+                    $conn = pg_connect($dsn, PGSQL_CONNECT_FORCE_NEW);
+                } else {
+                    $conn = pg_connect($dsn);
                 }
+                $this->conn = $conn;
+
+                restore_error_handler();
             }
         }
 
@@ -1116,4 +1117,77 @@ class Dacapo
             trigger_error($this->last_error, $error_level);
         }
     }
+
+    /**
+     * Error handler function. Replaces PHP's error handler.
+     *
+     * E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING are always handled by PHP.
+     * E_WARNING, E_NOTICE, E_USER_ERROR, E_USER_WARNING, E_USER_NOTICE are handled by this function.
+     *
+     * @param int    $err_no
+     * @param string $err_str
+     * @param string $err_file
+     * @param int    $err_line
+     *
+     * @throws ErrorException
+     */
+    public function dacapoErrorHandler(
+        int $err_no,
+        string $err_str,
+        string $err_file,
+        int $err_line
+    ) {
+        // if error_reporting is set to 0, exit. This is also the case when using @
+        if (!error_reporting()) {
+            return;
+        }
+
+        // throw ErrorException
+        $message = 'ErrNo=' . $err_no . ' (' . $this->getFriendlyErrorType($err_no) . ') ' . $err_str;
+        throw new ErrorException($message, $err_no, $err_no, $err_file, $err_line);
+    }    
+
+    /**
+     * @param int $type
+     *
+     * @return string
+     */
+    private function getFriendlyErrorType(int $type)
+    {
+        switch ($type) {
+            case E_ERROR: // 1 //
+                return 'E_ERROR';
+            case E_WARNING: // 2 //
+                return 'E_WARNING';
+            case E_PARSE: // 4 //
+                return 'E_PARSE';
+            case E_NOTICE: // 8 //
+                return 'E_NOTICE';
+            case E_CORE_ERROR: // 16 //
+                return 'E_CORE_ERROR';
+            case E_CORE_WARNING: // 32 //
+                return 'E_CORE_WARNING';
+            case E_COMPILE_ERROR: // 64 //
+                return 'E_COMPILE_ERROR';
+            case E_COMPILE_WARNING: // 128 //
+                return 'E_COMPILE_WARNING';
+            case E_USER_ERROR: // 256 //
+                return 'E_USER_ERROR';
+            case E_USER_WARNING: // 512 //
+                return 'E_USER_WARNING';
+            case E_USER_NOTICE: // 1024 //
+                return 'E_USER_NOTICE';
+            case E_STRICT: // 2048 //
+                return 'E_STRICT';
+            case E_RECOVERABLE_ERROR: // 4096 //
+                return 'E_RECOVERABLE_ERROR';
+            case E_DEPRECATED: // 8192 //
+                return 'E_DEPRECATED';
+            case E_USER_DEPRECATED: // 16384 //
+                return 'E_USER_DEPRECATED';
+        }
+
+        return 'UNKNOWN ERROR';
+    }
+
 }
