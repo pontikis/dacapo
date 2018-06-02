@@ -355,9 +355,6 @@ class Dacapo
      */
     public function dbConnect()
     {
-        $this->last_error = null;
-        $this->last_errno = null;
-
         if (null === $this->conn) {
             if ('MYSQLi' === $this->rdbms) {
                 // force mysqli to throw mysqli_sql_exception for errors instead of warnings
@@ -527,15 +524,10 @@ class Dacapo
 
     /**
      * Begin Transaction.
-     *
-     * @return bool
      */
     public function beginTrans()
     {
         $conn = $this->dbConnect();
-        if (!$conn) {
-            return false;
-        }
 
         switch ($this->rdbms) {
             case 'MYSQLi':
@@ -546,21 +538,14 @@ class Dacapo
                 pg_query($conn, 'BEGIN');
                 break;
         }
-
-        return true;
     }
 
     /**
      * Commit Transaction.
-     *
-     * @return bool
      */
     public function commitTrans()
     {
         $conn = $this->dbConnect();
-        if (!$conn) {
-            return false;
-        }
 
         switch ($this->rdbms) {
             case 'MYSQLi':
@@ -571,21 +556,14 @@ class Dacapo
                 pg_query($conn, 'COMMIT');
                 break;
         }
-
-        return true;
     }
 
     /**
      * Rollback Transaction.
-     *
-     * @return bool
      */
     public function rollbackTrans()
     {
         $conn = $this->dbConnect();
-        if (!$conn) {
-            return false;
-        }
 
         switch ($this->rdbms) {
             case 'MYSQLi':
@@ -596,8 +574,6 @@ class Dacapo
                 pg_query($conn, 'ROLLBACK');
                 break;
         }
-
-        return true;
     }
 
     /**
@@ -608,46 +584,24 @@ class Dacapo
      * (e.g. CREATE TABLESPACE in Postgres and more)
      *
      * @param $sql
-     *
-     * @return bool
      */
     public function execute($sql)
     {
-        // initialize ----------------------------------------------------------
-        $this->last_error = null;
-        $this->last_errno = null;
-
         // get database connection ---------------------------------------------
         $conn = $this->dbConnect();
-        if (!$conn) {
-            return false;
-        }
 
         // MYSQLi --------------------------------------------------------------
         if ('MYSQLi' == $this->rdbms) {
             $rs = $conn->multi_query($sql);
             if (false === $rs) {
-                $this->last_error = $this->messages['wrong_sql'] . '. ' . $conn->error;
-                $this->last_errno = $conn->errno;
-                $this->_trigger_error($this->error_level);
-
-                return false;
+                throw new Exception($conn->error);
             }
         }
 
         // POSTGRES ------------------------------------------------------------
         if ('POSTGRES' == $this->rdbms) {
-            try {
-                $rs = pg_query($conn, $sql);
-            } catch (Exception $e) {
-                $this->last_error = $this->messages['wrong_sql'] . '. ' . pg_last_error();
-                $this->_trigger_error($this->error_level);
-
-                return false;
-            }
+            $rs = pg_query($conn, $sql);
         }
-
-        return true;
     }
 
     // PUBLIC FUNCTIONS - UTILITIES --------------------------------------------
@@ -680,15 +634,12 @@ class Dacapo
      */
     public function limit($row_count, $offset)
     {
-        $res = '';
         if ('MYSQLi' == $this->rdbms) {
-            $res = 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
+            return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
         }
         if ('POSTGRES' == $this->rdbms) {
-            $res = 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
+            return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
         }
-
-        return $res;
     }
 
     // PUBLIC FUNCTIONS - MEMCACHED --------------------------------------------
@@ -866,9 +817,6 @@ class Dacapo
         }
 
         // initialize ----------------------------------------------------------
-        $this->last_error = null;
-        $this->last_errno = null;
-
         if (in_array($mode, ['select'])) {
             $this->data     = null;
             $this->num_rows = null;
@@ -883,9 +831,6 @@ class Dacapo
 
         // get database connection ---------------------------------------------
         $conn = $this->dbConnect();
-        if (!$conn) {
-            return false;
-        }
 
         // sql -----------------------------------------------------------------
         if ($direct_sql) {
@@ -899,21 +844,14 @@ class Dacapo
                 'use_prepared_statements' => $use_prepared_statements,
             ];
             $res = $this->_create_sql($sql, $bind_params, $sql_options);
-            if (!$res) {
-                return false;
-            }
         }
 
         // MYSQLi --------------------------------------------------------------
-        if ('MYSQLi' == $this->rdbms) {
+        if ('MYSQLi' === $this->rdbms) {
             // USE database ----------------------------------------------------
             $rs = $conn->query('USE ' . $db_name);
             if (false === $rs) {
-                $this->last_error = $conn->error;
-                $this->last_errno = $conn->errno;
-                $this->_trigger_error($error_level);
-
-                return false;
+                throw new Exception($conn->error);
             }
 
             // fetch type (select) ---------------------------------------------
@@ -924,11 +862,7 @@ class Dacapo
                 // Prepare statement
                 $stmt = $conn->prepare($this->sql);
                 if (false === $stmt) {
-                    $this->last_error = $this->messages['wrong_sql'] . ': ' . $this->sql . '. ' . $conn->error;
-                    $this->last_errno = $conn->errno;
-                    $this->_trigger_error($error_level);
-
-                    return false;
+                    throw new Exception($conn->error);
                 }
 
                 // use call_user_func_array, as $stmt->bind_param('s', $param); does not accept params array
@@ -954,11 +888,7 @@ class Dacapo
                 $stmt->execute();
 
                 if ($stmt->error) {
-                    $this->last_error = $this->messages['query_execution_error'] . ': ' . $stmt->error;
-                    $this->last_errno = $stmt->errno;
-                    $this->_trigger_error($error_level);
-
-                    return false;
+                    throw new Exception($stmt->error);
                 }
 
                 if (in_array($mode, ['select'])) {
@@ -993,11 +923,7 @@ class Dacapo
             } else {
                 $rs = $conn->query($this->sql);
                 if (false === $rs) {
-                    $this->last_error = $this->messages['wrong_sql'] . ': ' . $this->sql . '. ' . $conn->error;
-                    $this->last_errno = $conn->errno;
-                    $this->_trigger_error($error_level);
-
-                    return false;
+                    throw new Exception($conn->error);
                 }
 
                 if (in_array($mode, ['select'])) {
@@ -1037,14 +963,8 @@ class Dacapo
             // SET search_path -------------------------------------------------
             if ($db_schema) {
                 $rs = pg_query($conn, 'SET search_path TO ' . $db_schema);
-
-                if (false === $rs) {
-                    $this->last_error = pg_last_error();
-                    $this->_trigger_error($error_level);
-
-                    return false;
-                }
             }
+
             // fetch type (select) ---------------------------------------------
             $a_fetch_type = $this->a_fetch_type_postgres;
 
@@ -1131,10 +1051,8 @@ class Dacapo
         $count_params_st = count($a_stmt) - 1;
         $count_params    = count($bind_params);
         if ($count_params_st != $count_params) {
-            $this->last_error = sprintf($this->messages['invalid_number_of_variables'], $count_params, $count_params_st);
-            $this->_trigger_error($error_level);
-
-            return false;
+            $message = sprintf('Dacapo ERROR: Number of variables (%u) does not match number of parameters in statement (%u)', $count_params, $count_params_st);
+            throw new Exception($message);
         }
 
         $sql = '';
@@ -1167,21 +1085,6 @@ class Dacapo
         $this->sql = $sql;
 
         return true;
-    }
-
-    /**
-     * Trigger error.
-     *
-     * @param mixed|null $error_level
-     */
-    private function _trigger_error($error_level = null)
-    {
-        if (null === $error_level) {
-            $error_level = $this->error_level;
-        }
-        if ($error_level) {
-            trigger_error($this->last_error, $error_level);
-        }
     }
 
     /**
