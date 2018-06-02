@@ -41,6 +41,8 @@ class Dacapo
     private $pg_connect_force_new;
     private $pg_connect_timeout;
 
+    private $use_dacapo_error_handler;
+
     /** @var bool Use prepared statements or not */
     private $use_pst;
     private $pst_placeholder;
@@ -118,6 +120,10 @@ class Dacapo
         $this->db_port            = array_key_exists('db_port', $a_db) ? $a_db['db_port'] : null;
         $this->charset            = array_key_exists('charset', $a_db) ? $a_db['charset'] : null;
         $this->pg_connect_timeout = array_key_exists('pg_connect_timeout', $a_db) ? $a_db['pg_connect_timeout'] : null;
+
+        $this->use_dacapo_error_handler = array_key_exists('use_dacapo_error_handler', $a_db) ?
+        $a_db['use_dacapo_error_handler'] :
+        true;
 
         $this->pg_connect_force_new = array_key_exists('pg_connect_force_new', $a_db) ? $a_db['pg_connect_force_new'] : false;
 
@@ -201,6 +207,18 @@ class Dacapo
     public function setPgConnectTimout(int $seconds)
     {
         $this->pg_connect_timeout = $seconds;
+
+        return $this;
+    }
+
+    public function getUseDacapoErrorHandler()
+    {
+        return $this->use_dacapo_error_handler;
+    }
+
+    public function setUseDacapoErrorHandler(bool $flag)
+    {
+        $this->use_dacapo_error_handler = $flag;
 
         return $this;
     }
@@ -376,7 +394,7 @@ class Dacapo
                     $dsn .= ' connect_timeout=' . $this->pg_connect_timeout;
                 }
 
-                set_error_handler([$this, 'dacapoErrorHandler'], E_ALL);
+                $this->applyDacapoErrorHandler();
 
                 if ($this->pg_connect_force_new) {
                     $conn = pg_connect($dsn, PGSQL_CONNECT_FORCE_NEW);
@@ -385,7 +403,7 @@ class Dacapo
                 }
                 $this->conn = $conn;
 
-                restore_error_handler();
+                $this->restoreErrorHandler();
             }
         }
 
@@ -1021,7 +1039,6 @@ class Dacapo
             $a_fetch_type = $this->a_fetch_type_postgres;
 
             // proceed to query ------------------------------------------------
-            //try {
             if ($use_prepared_statements) {
                 $rs = pg_query_params($conn, $this->sql, $bind_params);
             } else {
@@ -1060,12 +1077,6 @@ class Dacapo
             if (in_array($mode, ['insert', 'update', 'delete'])) {
                 $this->affected_rows = pg_affected_rows($rs);
             }
-            //} catch (Exception $e) {
-            //    $this->last_error = 'CUSTOM!!! ' . $this->messages['wrong_sql'] . ': ' . $this->sql . '. ' . pg_last_error();
-            //$this->_trigger_error($error_level);
-
-            //    return false;
-            //}
         }
 
         return true;
@@ -1204,5 +1215,19 @@ class Dacapo
         }
 
         return 'UNKNOWN ERROR';
+    }
+
+    private function applyDacapoErrorHandler()
+    {
+        if (true === $this->use_dacapo_error_handler) {
+            set_error_handler([$this, 'dacapoErrorHandler'], E_ALL);
+        }
+    }
+
+    private function restoreErrorHandler()
+    {
+        if (true === $this->use_dacapo_error_handler) {
+            restore_error_handler();
+        }
     }
 }
