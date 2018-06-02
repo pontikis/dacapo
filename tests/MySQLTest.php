@@ -120,7 +120,7 @@ final class MySQLTest extends TestCase
         $ds = new Dacapo(self::$db_with_server_name, self::$mc);
 
         $this->assertInstanceOf(
-            dacapo::class,
+            Dacapo::class,
             $ds
         );
     }
@@ -130,7 +130,7 @@ final class MySQLTest extends TestCase
         $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
 
         $this->assertInstanceOf(
-            dacapo::class,
+            Dacapo::class,
             $ds
         );
     }
@@ -138,7 +138,7 @@ final class MySQLTest extends TestCase
     public function testInstanceFails1()
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage(dacapo::ERROR_RDBMS_NOT_SUPPORTED);
+        $this->expectExceptionMessage(Dacapo::ERROR_RDBMS_NOT_SUPPORTED);
         $ds = new Dacapo(self::$db_wrong_rdbms, self::$mc);
     }
 
@@ -150,7 +150,7 @@ final class MySQLTest extends TestCase
         $ds = new Dacapo(self::$db_with_server_name, self::$mc);
 
         $this->assertInstanceOf(
-            dacapo::class,
+            Dacapo::class,
             $ds
         );
 
@@ -165,7 +165,7 @@ final class MySQLTest extends TestCase
         $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
 
         $this->assertInstanceOf(
-            dacapo::class,
+            Dacapo::class,
             $ds
         );
 

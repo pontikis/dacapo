@@ -269,14 +269,22 @@ However, use of preapared statements is strongly recommended in all cases.
 PHPUnit
 -------
 
-```
-./vendor/bin/phpunit --colors --configuration tests/phpunit.xml tests
-```
-
-or 
+MySQL tests
 
 ```
-./vendor/bin/phpunit --enforce-time-limit --colors --configuration tests/phpunit.xml tests
+./vendor/bin/phpunit --enforce-time-limit --configuration tests/phpunit.xml tests/MySQLTest.php
 ```
 
 In this case PHP_Invoker is needed https://github.com/sebastianbergmann/php-invoker
+
+Postgres tests
+
+```
+./vendor/bin/phpunit  --configuration tests/phpunit.xml tests/PostgresqlTest.php
+```
+
+Run certain test eg testConnectFails1()
+
+```
+./vendor/bin/phpunit  --configuration tests/phpunit.xml tests/PostgresqlTest.php --filter '/testConnectFails1$/'
+```

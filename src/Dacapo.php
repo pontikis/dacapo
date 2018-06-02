@@ -28,6 +28,8 @@ class Dacapo
     const ERROR_MYSQLND_IS_REQUIRED = 'Dacapo ERROR: mysqlnd extension is required';
     const ERROR_PGSQL_IS_REQUIRED   = 'Dacapo ERROR: pgsql extension is required';
 
+    const EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
+
     private $rdbms;
     private $db_server;
     private $db_user;
@@ -804,7 +806,15 @@ class Dacapo
 
         // throw ErrorException
         $message = 'ErrNo=' . $err_no . ' (' . $this->getFriendlyErrorType($err_no) . ') ' . $err_str;
-        throw new ErrorException($message, $err_no, $err_no, $err_file, $err_line);
+        try {
+            throw new ErrorException(
+                self::EXCEPTION_IDENTIFIER . ' ' . $message,
+                $err_no, $err_no, $err_file, $err_line
+            );
+        } catch (ErrorException $e) {
+            restore_error_handler();
+            throw $e;
+        }
     }
 
     // PRIVATE FUNCTIONS -------------------------------------------------------
