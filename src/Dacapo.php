@@ -23,10 +23,10 @@ use Exception;
  */
 class Dacapo
 {
-    const ERROR_RDBMS_NOT_SUPPORTED = 'Dacapo ERROR: Database not supported';
-    const ERROR_MYSQLI_IS_REQUIRED  = 'Dacapo ERROR: mysqli extension is required';
-    const ERROR_MYSQLND_IS_REQUIRED = 'Dacapo ERROR: mysqlnd extension is required';
-    const ERROR_PGSQL_IS_REQUIRED   = 'Dacapo ERROR: pgsql extension is required';
+    const ERROR_RDBMS_NOT_SUPPORTED = 'Database not supported';
+    const ERROR_MYSQLI_IS_REQUIRED  = 'mysqli extension is required';
+    const ERROR_MYSQLND_IS_REQUIRED = 'mysqlnd extension is required';
+    const ERROR_PGSQL_IS_REQUIRED   = 'pgsql extension is required';
 
     const EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
 
@@ -87,6 +87,8 @@ class Dacapo
      *
      * @param array $a_db database settings
      * @param array $a_mc memcached settings
+     *
+     * @throws Exception
      */
     public function __construct(array $a_db, array $a_mc)
     {
@@ -351,7 +353,9 @@ class Dacapo
     /**
      * Establish database connection.
      *
-     * @return bool|mysqli|object|resource|null
+     * @return mysqli|resource
+     *
+     * @throws mysqli_sql_exception|ErrorException
      */
     public function dbConnect()
     {
@@ -416,10 +420,10 @@ class Dacapo
     {
         $conn = $this->conn;
         if (null !== $conn) {
-            if ('MYSQLi' == $this->rdbms) {
+            if ('MYSQLi' === $this->rdbms) {
                 $conn->close();
             }
-            if ('POSTGRES' == $this->rdbms) {
+            if ('POSTGRES' === $this->rdbms) {
                 pg_close($conn);
             }
         }
@@ -767,8 +771,6 @@ class Dacapo
             throw $e;
         }
     }
-
-    // PRIVATE FUNCTIONS -------------------------------------------------------
 
     /**
      * @param $sql
