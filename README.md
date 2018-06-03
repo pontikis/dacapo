@@ -56,7 +56,7 @@ Usage - examples
 ### Create instance
 
 ```php
-require_once '/path/to/dacapo.class.php';
+use Pontikis\Database\Dacapo;
 
 $db_settings = array(
 	'rdbms' => 'POSTGRES', // or 'MYSQLi' for MySQL/MariaDB
@@ -64,7 +64,7 @@ $db_settings = array(
 	'db_user' => 'foo',
 	'db_passwd' => 'foo',
 	'db_name' => 'foo',
-	'db_schema' => 'public', // POSTGRES only
+	'db_schema' => 'bar', // POSTGRES only
 	'db_port' => '5432', // or '3306' for MySQL/MariaDB
 	'charset' => 'utf8',
 	'use_pst' => true, // use prepared statements
@@ -82,7 +82,7 @@ $memcached_settings = array(
 );
 
 try {
-	$ds = new dacapo($db_settings, $memcached_settings);	
+	$ds = new Dacapo($db_settings, $memcached_settings);	
 } catch (Exception $e) {
 	// your code here
 }
@@ -259,7 +259,7 @@ However, use of preapared statements is strongly recommended in all cases.
 PHPUnit
 -------
 
-MySQL tests
+### MySQL tests
 
 ```
 ./vendor/bin/phpunit --enforce-time-limit --configuration tests/phpunit.xml tests/MySQLTest.php
@@ -267,13 +267,13 @@ MySQL tests
 
 In this case PHP_Invoker is needed https://github.com/sebastianbergmann/php-invoker
 
-Postgres tests
+### Postgres tests
 
 ```
 ./vendor/bin/phpunit  --configuration tests/phpunit.xml tests/PostgresqlTest.php
 ```
 
-Run certain test eg testConnectFails1()
+### Run certain test eg testConnectFails1()
 
 ```
 ./vendor/bin/phpunit  --configuration tests/phpunit.xml tests/PostgresqlTest.php --filter '/testConnectFails1$/'
