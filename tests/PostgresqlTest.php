@@ -5,6 +5,7 @@ declare(strict_types=1);
 use PHPUnit\Framework\Error\Warning;
 use PHPUnit\Framework\TestCase;
 use Pontikis\Database\Dacapo;
+use Pontikis\Database\DacapoErrorException;
 
 final class PostgresqlTest extends TestCase
 {
@@ -115,8 +116,6 @@ final class PostgresqlTest extends TestCase
             ],
             'use_memcached' => true,
         ];
-
-        self::$regex_not_dacapo = '/^(?!' . Dacapo::EXCEPTION_IDENTIFIER . ').*/';
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -191,8 +190,7 @@ final class PostgresqlTest extends TestCase
     {
         $ds = new Dacapo(self::$db_wrong_server_name, self::$mc);
         $ds->setPgConnectTimout((int) $GLOBALS['POSTGRES_PG_CONNECT_TIMOUT']);
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage(Dacapo::EXCEPTION_IDENTIFIER);
+        $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
@@ -202,7 +200,6 @@ final class PostgresqlTest extends TestCase
         $ds->setPgConnectTimout((int) $GLOBALS['POSTGRES_PG_CONNECT_TIMOUT']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
-        $this->expectExceptionMessageRegExp(self::$regex_not_dacapo);
         $ds->dbConnect();
     }
 
@@ -215,8 +212,7 @@ final class PostgresqlTest extends TestCase
     {
         $ds = new Dacapo(self::$db_wrong_server_ip, self::$mc);
         $ds->setPgConnectTimout((int) $GLOBALS['POSTGRES_PG_CONNECT_TIMOUT']);
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage(Dacapo::EXCEPTION_IDENTIFIER);  
+        $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
@@ -226,15 +222,13 @@ final class PostgresqlTest extends TestCase
         $ds->setPgConnectTimout((int) $GLOBALS['POSTGRES_PG_CONNECT_TIMOUT']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
-        $this->expectExceptionMessageRegExp(self::$regex_not_dacapo);
         $ds->dbConnect();
     }
 
     public function testConnectFails3()
     {
         $ds = new Dacapo(self::$db_wrong_user_with_server_name, self::$mc);
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage(Dacapo::EXCEPTION_IDENTIFIER);
+        $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
@@ -243,15 +237,13 @@ final class PostgresqlTest extends TestCase
         $ds = new Dacapo(self::$db_wrong_user_with_server_name, self::$mc);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
-        $this->expectExceptionMessageRegExp(self::$regex_not_dacapo);
         $ds->dbConnect();
     }
 
     public function testConnectFails4()
     {
         $ds = new Dacapo(self::$db_wrong_user_with_server_ip, self::$mc);
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage(Dacapo::EXCEPTION_IDENTIFIER);
+        $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
@@ -260,15 +252,13 @@ final class PostgresqlTest extends TestCase
         $ds = new Dacapo(self::$db_wrong_user_with_server_ip, self::$mc);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
-        $this->expectExceptionMessageRegExp(self::$regex_not_dacapo);
         $ds->dbConnect();
     }
 
     public function testConnectFails5()
     {
         $ds = new Dacapo(self::$db_wrong_passwd_with_server_name, self::$mc);
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage(Dacapo::EXCEPTION_IDENTIFIER);
+        $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
@@ -277,15 +267,13 @@ final class PostgresqlTest extends TestCase
         $ds = new Dacapo(self::$db_wrong_passwd_with_server_name, self::$mc);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
-        $this->expectExceptionMessageRegExp(self::$regex_not_dacapo);
         $ds->dbConnect();
     }
 
     public function testConnectFails6()
     {
         $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip, self::$mc);
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage(Dacapo::EXCEPTION_IDENTIFIER);
+        $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
@@ -294,15 +282,13 @@ final class PostgresqlTest extends TestCase
         $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip, self::$mc);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
-        $this->expectExceptionMessageRegExp(self::$regex_not_dacapo);
         $ds->dbConnect();
     }
 
     public function testConnectFails7()
     {
         $ds = new Dacapo(self::$db_wrong_dbname_with_server_name, self::$mc);
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage(Dacapo::EXCEPTION_IDENTIFIER);
+        $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
@@ -311,15 +297,13 @@ final class PostgresqlTest extends TestCase
         $ds = new Dacapo(self::$db_wrong_dbname_with_server_name, self::$mc);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
-        $this->expectExceptionMessageRegExp(self::$regex_not_dacapo);
         $ds->dbConnect();
     }
 
     public function testConnectFails8()
     {
         $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip, self::$mc);
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage(Dacapo::EXCEPTION_IDENTIFIER);
+        $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
@@ -328,15 +312,13 @@ final class PostgresqlTest extends TestCase
         $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip, self::$mc);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
-        $this->expectExceptionMessageRegExp(self::$regex_not_dacapo);
         $ds->dbConnect();
     }
 
     public function testConnectFails9()
     {
         $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage(Dacapo::EXCEPTION_IDENTIFIER);
+        $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
@@ -345,15 +327,13 @@ final class PostgresqlTest extends TestCase
         $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
-        $this->expectExceptionMessageRegExp(self::$regex_not_dacapo);
         $ds->dbConnect();
     }
 
     public function testConnectFails10()
     {
         $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
-        $this->expectException(ErrorException::class);
-        $this->expectExceptionMessage(Dacapo::EXCEPTION_IDENTIFIER);
+        $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
@@ -362,14 +342,13 @@ final class PostgresqlTest extends TestCase
         $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
-        $this->expectExceptionMessageRegExp(self::$regex_not_dacapo);
         $ds->dbConnect();
-    }    
+    }
 
     ////////////////////////////////////////////////////////////////////
     // Test select()                                                  //
     ////////////////////////////////////////////////////////////////////
-    public function test4()
+    public function testSelect1()
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
         $sql           = 'SELECT * FROM test.customers_en';
@@ -382,9 +361,20 @@ final class PostgresqlTest extends TestCase
         );
     }
 
-    public function test5()
+    public function testSelectFails1()
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $sql           = 'SELECT * FROM test.customers_xx';
+        $bind_params   = [];
+        $query_options = [];
+        $this->expectException(DacapoErrorException::class);
+        $res = $ds->select($sql, $bind_params, $query_options);
+    }
+
+    public function testSelectFails1a()
+    {
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
         $sql           = 'SELECT * FROM test.customers_xx';
         $bind_params   = [];
         $query_options = [];

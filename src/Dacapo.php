@@ -23,11 +23,11 @@ use Exception;
  */
 class Dacapo
 {
-    const ERROR_RDBMS_NOT_SUPPORTED = 'Database not supported';
-    const ERROR_MYSQLI_IS_REQUIRED  = 'mysqli extension is required';
-    const ERROR_MYSQLND_IS_REQUIRED = 'mysqlnd extension is required';
-    const ERROR_PGSQL_IS_REQUIRED   = 'pgsql extension is required';
-    const EXCEPTION_IDENTIFIER      = 'Dacapo_ErrorException';
+    const ERROR_RDBMS_NOT_SUPPORTED  = 'Database not supported';
+    const ERROR_MYSQLI_IS_REQUIRED   = 'mysqli extension is required';
+    const ERROR_MYSQLND_IS_REQUIRED  = 'mysqlnd extension is required';
+    const ERROR_PGSQL_IS_REQUIRED    = 'pgsql extension is required';
+    const ERROR_EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
 
     private $rdbms;
     private $db_server;
@@ -311,9 +311,11 @@ class Dacapo
     public function dbConnect()
     {
         if (null === $this->conn) {
+            $this->applyDacapoErrorHandler();
+
             if ('MYSQLi' === $this->rdbms) {
                 // force mysqli to throw mysqli_sql_exception for errors instead of warnings
-                mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+                //mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
                 if ($this->db_port) {
                     $conn = new \mysqli(
@@ -348,17 +350,15 @@ class Dacapo
                     $dsn .= ' connect_timeout=' . $this->pg_connect_timeout;
                 }
 
-                $this->applyDacapoErrorHandler();
-
                 if ($this->pg_connect_force_new) {
                     $conn = pg_connect($dsn, PGSQL_CONNECT_FORCE_NEW);
                 } else {
                     $conn = pg_connect($dsn);
                 }
                 $this->conn = $conn;
-
-                $this->restoreErrorHandler();
             }
+
+            $this->restoreErrorHandler();
         }
 
         return $this->conn;
@@ -423,7 +423,7 @@ class Dacapo
         array $bind_params = [],
         array $options = []
     ) {
-        return $this->_query($sql, $bind_params, $options);
+        $this->_query($sql, $bind_params, $options);
     }
 
     /**
@@ -443,7 +443,7 @@ class Dacapo
         array $bind_params = [],
         array $options = []
     ) {
-        return $this->_query($sql, $bind_params, $options);
+        $this->_query($sql, $bind_params, $options);
     }
 
     /**
@@ -462,7 +462,7 @@ class Dacapo
         array $bind_params = [],
         array $options = []
     ) {
-        return $this->_query($sql, $bind_params, $options);
+        $this->_query($sql, $bind_params, $options);
     }
 
     /**
@@ -481,7 +481,7 @@ class Dacapo
         array $bind_params = [],
         array $options = []
     ) {
-        return $this->_query($sql, $bind_params, $options);
+        $this->_query($sql, $bind_params, $options);
     }
 
     /**
@@ -556,7 +556,7 @@ class Dacapo
         if ('MYSQLi' == $this->rdbms) {
             $rs = $conn->multi_query($sql);
             if (false === $rs) {
-                throw new Exception($conn->error);
+                //throw new Exception($conn->error);
             }
         }
 
@@ -721,15 +721,26 @@ class Dacapo
         }
 
         // throw ErrorException
-        $message = 'ErrNo=' . $err_no . ' (' . $this->getFriendlyErrorType($err_no) . ') ' . $err_str;
+        $message = self::ERROR_EXCEPTION_IDENTIFIER . ' ' .
+        'ErrNo=' . $err_no . ' (' . $this->getFriendlyErrorType($err_no) . ') ' . $err_str;
         try {
             throw new ErrorException(
-                self::EXCEPTION_IDENTIFIER . ' ' . $message,
-                $err_no, $err_no, $err_file, $err_line
+                $message,
+                $err_no,
+                $err_no,
+                $err_file,
+                $err_line
             );
         } catch (ErrorException $e) {
             restore_error_handler();
-            throw $e;
+            throw new DacapoErrorException(
+                $message,
+                $err_no,
+                $err_no,
+                $err_file,
+                $err_line,
+                $e
+            );
         }
     }
 
@@ -745,6 +756,8 @@ class Dacapo
         array $bind_params = [],
         array $options = [])
     {
+        $this->applyDacapoErrorHandler();
+
         // get query type
         $a_sql = explode(' ', $sql);
         $mode  = strtolower($a_sql[0]);
@@ -780,6 +793,8 @@ class Dacapo
             $use_prepared_statements = $use_pst;
         }
 
+        $use_prepared_statements = true;
+
         // initialize ----------------------------------------------------------
         if (in_array($mode, ['select'])) {
             $this->data     = null;
@@ -811,10 +826,13 @@ class Dacapo
 
         // MYSQLi --------------------------------------------------------------
         if ('MYSQLi' === $this->rdbms) {
+            // force mysqli to throw mysqli_sql_exception for errors instead of warnings
+            //mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
             // USE database ----------------------------------------------------
             $rs = $conn->query('USE ' . $db_name);
             if (false === $rs) {
-                throw new Exception($conn->error);
+                //throw new Exception($conn->error);
             }
 
             // fetch type (select) ---------------------------------------------
@@ -825,33 +843,35 @@ class Dacapo
                 // Prepare statement
                 $stmt = $conn->prepare($this->sql);
                 if (false === $stmt) {
-                    throw new Exception($conn->error);
+                    trigger_error($conn->error, E_WARNING);
                 }
 
-                // use call_user_func_array, as $stmt->bind_param('s', $param); does not accept params array
-                $a_params = [];
-                $a_types  = $this->a_types;
+                if (count($bind_params)) {
+                    // use call_user_func_array, as $stmt->bind_param('s', $param); does not accept params array
+                    $a_params = [];
+                    $a_types  = $this->a_types;
 
-                $param_type = '';
-                $n          = count($bind_params);
-                for ($i = 0; $i < $n; ++$i) {
-                    $param_type .= $a_types[gettype($bind_params[$i])];
-                }
+                    $param_type = '';
+                    $n          = count($bind_params);
+                    for ($i = 0; $i < $n; ++$i) {
+                        $param_type .= $a_types[gettype($bind_params[$i])];
+                    }
 
-                // with call_user_func_array, array params must be passed by reference
-                $a_params[] = &$param_type;
-
-                for ($i = 0; $i < $n; ++$i) {
                     // with call_user_func_array, array params must be passed by reference
-                    $a_params[] = &$bind_params[$i];
+                    $a_params[] = &$param_type;
+
+                    for ($i = 0; $i < $n; ++$i) {
+                        // with call_user_func_array, array params must be passed by reference
+                        $a_params[] = &$bind_params[$i];
+                    }
+                    call_user_func_array([$stmt, 'bind_param'], $a_params);
                 }
-                call_user_func_array([$stmt, 'bind_param'], $a_params);
 
                 // Execute statement
                 $stmt->execute();
 
                 if ($stmt->error) {
-                    throw new Exception($stmt->error);
+                    //throw new Exception($stmt->error);
                 }
 
                 if (in_array($mode, ['select'])) {
@@ -886,7 +906,7 @@ class Dacapo
             } else {
                 $rs = $conn->query($this->sql);
                 if (false === $rs) {
-                    throw new Exception($conn->error);
+                    //throw new Exception($conn->error);
                 }
 
                 if (in_array($mode, ['select'])) {
@@ -972,7 +992,7 @@ class Dacapo
             }
         }
 
-        return true;
+        $this->restoreErrorHandler();
     }
 
     /**
@@ -1014,7 +1034,7 @@ class Dacapo
         if ($count_params_st != $count_params) {
             $message = sprintf('Number of variables (%u) does not match number of parameters in statement (%u)',
                 $count_params, $count_params_st);
-            throw new Exception($message);
+            //throw new Exception($message);
         }
 
         $sql = '';

@@ -57,6 +57,7 @@ Usage - examples
 
 ```php
 use Pontikis\Database\Dacapo;
+use Pontikis\Database\DacapoErrorException;
 
 $db_settings = array(
 	'rdbms' => 'POSTGRES', // or 'MYSQLi' for MySQL/MariaDB
@@ -96,7 +97,7 @@ $bind_params = array('%' . $str . '%');
 try {
 	$ds->select($sql, $bind_params);
 	$customers = $ds->getData();
-} catch (Exception $e) {
+} catch (DacapoErrorException $e) {
 	// your code here
 }
 ```
@@ -121,7 +122,7 @@ $query_options = array("get_row" => true);
 try {
 	$ds->select($sql, $bind_params, $query_options);
 	$customer = $ds->getData();	
-} catch (Exception $e) {
+} catch (DacapoErrorException $e) {
 	// your code here
 }
 ```
@@ -143,7 +144,7 @@ $bind_params = array($firstname, $lastname);
 try {
 	$ds->insert($sql, $bind_params);
 	$new_customer_id = $ds->getInsertId();
-} catch (Exception $e) {
+} catch (DacapoErrorException $e) {
 	// your code here
 }
 ```
@@ -156,7 +157,7 @@ $bind_params = array($category, $balance);
 try {
 	$ds->update($sql, $bind_params);
 	$affected_rows = $ds->getAffectedRows();
-} catch (Exception $e) {
+} catch (DacapoErrorException $e) {
 	// your code here
 }
 ```
@@ -169,7 +170,7 @@ $bind_params = array($category);
 try {
 	$ds->delete($sql, $bind_params);
 	$affected_rows = $ds->getAffectedRows();	
-} catch (Exception $e) {
+} catch (DacapoErrorException $e) {
 	// your code here
 }
 ```
@@ -184,7 +185,7 @@ $sql = 'DELETE FROM customers WHERE id = ?';
 $bind_params = array($customers_id);
 try {
 	$ds->delete($sql, $bind_params);
-} catch (Exception $e) {
+} catch (DacapoErrorException $e) {
 	$ds->rollbackTrans();
 	// your code here
 }
@@ -194,7 +195,7 @@ $sql = 'DELETE FROM demographics WHERE id = ?';
 $bind_params = array($customer_demographics_id);
 try {
 	$ds->delete($sql, $bind_params);
-} catch (Exception $e) {
+} catch (DacapoErrorException $e) {
 	$ds->rollbackTrans();
 	// your code here
 }

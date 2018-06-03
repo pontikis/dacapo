@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use PHPUnit\Framework\Error\Warning;
 use PHPUnit\Framework\TestCase;
 use Pontikis\Database\Dacapo;
+use Pontikis\Database\DacapoErrorException;
 
 final class MySQLTest extends TestCase
 {
@@ -186,7 +188,18 @@ final class MySQLTest extends TestCase
     public function testConnectFails1()
     {
         $ds = new Dacapo(self::$db_wrong_server_name, self::$mc);
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $ds->dbConnect();
+    }
+
+    /**
+     * @small
+     */
+    public function testConnectFails1a()
+    {
+        $ds = new Dacapo(self::$db_wrong_server_name, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $this->expectException(Warning::class);
         $ds->dbConnect();
     }
 
@@ -201,49 +214,108 @@ final class MySQLTest extends TestCase
     public function testConnectFails2()
     {
         $ds = new Dacapo(self::$db_wrong_server_ip, self::$mc);
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $ds->dbConnect();
+    }
+
+    /**
+     * @small
+     */
+    public function testConnectFails2a()
+    {
+        $ds = new Dacapo(self::$db_wrong_server_ip, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $this->expectException(Warning::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails3()
     {
         $ds = new Dacapo(self::$db_wrong_user_with_server_name, self::$mc);
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails3a()
+    {
+        $ds = new Dacapo(self::$db_wrong_user_with_server_name, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $this->expectException(Warning::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails4()
     {
         $ds = new Dacapo(self::$db_wrong_user_with_server_ip, self::$mc);
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails4a()
+    {
+        $ds = new Dacapo(self::$db_wrong_user_with_server_ip, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $this->expectException(Warning::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails5()
     {
         $ds = new Dacapo(self::$db_wrong_passwd_with_server_name, self::$mc);
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails5a()
+    {
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_name, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $this->expectException(Warning::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails6()
     {
         $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip, self::$mc);
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails6a()
+    {
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $this->expectException(Warning::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails7()
     {
         $ds = new Dacapo(self::$db_wrong_dbname_with_server_name, self::$mc);
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails7a()
+    {
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_name, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $this->expectException(Warning::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails8()
     {
         $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip, self::$mc);
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails8a()
+    {
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $this->expectException(Warning::class);
         $ds->dbConnect();
     }
 
@@ -251,26 +323,48 @@ final class MySQLTest extends TestCase
     {
         if ('localhost' === $GLOBALS['MYSQL_SERVER_NAME']) {
             $this->markTestSkipped(
-              'Using localhost, port is ignored.'
+                'Using localhost, port is ignored.'
             );
         }
 
         $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails9a()
+    {
+        if ('localhost' === $GLOBALS['MYSQL_SERVER_NAME']) {
+            $this->markTestSkipped(
+                'Using localhost, port is ignored.'
+            );
+        }
+
+        $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $this->expectException(Warning::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails10()
     {
         $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $ds->dbConnect();
+    }
+
+    public function testConnectFails10a()
+    {
+        $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $this->expectException(Warning::class);
         $ds->dbConnect();
     }
 
     ////////////////////////////////////////////////////////////////////
     // Test select()                                                  //
     ////////////////////////////////////////////////////////////////////
-    public function test4()
+    public function testSelect1()
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
         $sql           = 'SELECT * FROM customers_en';
@@ -283,13 +377,24 @@ final class MySQLTest extends TestCase
         );
     }
 
-    public function test5()
+    public function testSelectFails1()
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
         $sql           = 'SELECT * FROM customers_xx';
         $bind_params   = [];
         $query_options = [];
-        $this->expectException(mysqli_sql_exception::class);
+        $this->expectException(DacapoErrorException::class);
+        $res = $ds->select($sql, $bind_params, $query_options);
+    }
+
+    public function testSelectFails1a()
+    {
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $sql           = 'SELECT * FROM customers_xx';
+        $bind_params   = [];
+        $query_options = [];
+        $this->expectException(Warning::class);
         $res = $ds->select($sql, $bind_params, $query_options);
     }
 }
