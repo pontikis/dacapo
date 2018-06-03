@@ -982,7 +982,7 @@ class Dacapo
      * @param $bind_params
      * @param $options
      *
-     * @return bool
+     * @throws Exception
      */
     private function _create_sql($stmt, $bind_params, $options)
     {
@@ -1045,8 +1045,6 @@ class Dacapo
         }
 
         $this->sql = $sql;
-
-        return true;
     }
 
     /**
