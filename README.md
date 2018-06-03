@@ -1,7 +1,7 @@
-dacapo
+Dacapo
 ======
 
-Da Capo class (Simple PHP database and memcached wrapper)
+Dacapo class (Simple PHP database and memcached wrapper)
 
 Copyright Christos Pontikis http://www.pontikis.net
 
@@ -20,7 +20,7 @@ composer require pontikis/dacapo
 or the old-school way:
 
 ```php
-require_once 'path/to/dacapo.class.php';
+require_once 'path/to/Dacapo.php';
 ```
 
 Overview - features
@@ -37,24 +37,6 @@ Overview - features
 $sql = 'SELECT procuct_name FROM products WHERE manufacturer = ? and type IN (?,?,?)';
 ```
 * Use ``$ds->execute()`` to execute one or usually multiple SQL statements (e.g. an SQL script). You cannot use prepared statements here.
-* Support of i18n. Default messages are:
-
-```php
-array(
-	'db_not_supported' => 'Dacapo ERROR: Database not supported',
-	'invalid_placeholder' => 'Dacapo ERROR: Invalid placeholder for prepared statements',
-	'invalid_number_of_variables' => "Dacapo ERROR: Number of variables (%u) does not match number of parameters in statement (%u)",
-	'db_connect_error' => 'Dacapo ERROR: Database connection error',
-	'wrong_sql' => 'Dacapo ERROR: Query failed',
-	'query_execution_error' => 'Dacapo ERROR: Error executing query'
-);
-```
-
-to change them
-
-```php
-$ds->set_option('messages', $my_messages);
-```
 
 ### Remarks 
  
@@ -99,7 +81,11 @@ $memcached_settings = array(
 	)
 );
 
-$ds = new dacapo($db_settings, $memcached_settings);
+try {
+	$ds = new dacapo($db_settings, $memcached_settings);	
+} catch (Exception $e) {
+	// your code here
+}
 ```
 
 ### Select
@@ -107,11 +93,12 @@ $ds = new dacapo($db_settings, $memcached_settings);
 ```php
 $sql = 'SELECT id, firstname, lastname FROM customers WHERE lastname LIKE ?';
 $bind_params = array('%' . $str . '%');
-$res = $ds->select($sql, $bind_params);
-if(!$res) {
-	trigger_error($ds->getLastError(), E_USER_ERROR);
+try {
+	$ds->select($sql, $bind_params);
+	$customers = $ds->getData();
+} catch (Exception $e) {
+	// your code here
 }
-$customers = $ds->getData();
 ```
 #### Iterate data
 
@@ -131,11 +118,12 @@ if($ds->getNumRows() > 0) {
 $sql = 'SELECT firstname, lastname FROM customers WHERE id = ?';
 $bind_params = array($id);
 $query_options = array("get_row" => true);
-$res = $ds->select($sql, $bind_params, $query_options);
-if(!$res) {
-	trigger_error($ds->getLastError(), E_USER_ERROR);
+try {
+	$ds->select($sql, $bind_params, $query_options);
+	$customer = $ds->getData();	
+} catch (Exception $e) {
+	// your code here
 }
-$customer = $ds->getData();
 ```
 
 #### Get row data
@@ -152,11 +140,11 @@ if($ds->getNumRows() == 1) {
 ```php
 $sql = 'INSERT INTO customers (firstname, lastname) VALUES (?,?)';
 $bind_params = array($firstname, $lastname);
-$res = $ds->insert($sql, $bind_params);
-if(!$res) {
-	trigger_error($ds->getLastError(), E_USER_ERROR);
-} else {
+try {
+	$ds->insert($sql, $bind_params);
 	$new_customer_id = $ds->getInsertId();
+} catch (Exception $e) {
+	// your code here
 }
 ```
 
@@ -165,11 +153,11 @@ if(!$res) {
 ```php
 $sql = 'UPDATE customers SET category = ? WHERE balance > ?';
 $bind_params = array($category, $balance);
-$res = $ds->update($sql, $bind_params);
-if(!$res) {
-	trigger_error($ds->getLastError(), E_USER_ERROR);
-} else {
+try {
+	$ds->update($sql, $bind_params);
 	$affected_rows = $ds->getAffectedRows();
+} catch (Exception $e) {
+	// your code here
 }
 ```
 
@@ -178,11 +166,11 @@ if(!$res) {
 ```php
 $sql = 'DELETE FROM customers WHERE category = ?';
 $bind_params = array($category);
-$res = $ds->update($sql, $bind_params);
-if(!$res) {
-	trigger_error($ds->getLastError(), E_USER_ERROR);
-} else {
-	$affected_rows = $ds->getAffectedRows();
+try {
+	$ds->delete($sql, $bind_params);
+	$affected_rows = $ds->getAffectedRows();	
+} catch (Exception $e) {
+	// your code here
 }
 ```
 
@@ -194,19 +182,21 @@ $ds->beginTrans();
 // delete from customers
 $sql = 'DELETE FROM customers WHERE id = ?';
 $bind_params = array($customers_id);
-$res = $ds->delete($sql, $bind_params);
-if(!$res) {
+try {
+	$ds->delete($sql, $bind_params);
+} catch (Exception $e) {
 	$ds->rollbackTrans();
-	exit;
+	// your code here
 }
 
 // delete from demographics
 $sql = 'DELETE FROM demographics WHERE id = ?';
 $bind_params = array($customer_demographics_id);
-$res = $ds->delete($sql, $bind_params);
-if(!$res) {
+try {
+	$ds->delete($sql, $bind_params);
+} catch (Exception $e) {
 	$ds->rollbackTrans();
-	exit;
+	// your code here
 }
 
 $ds->commitTrans();

@@ -7,6 +7,10 @@ Copyright Christos Pontikis http://www.pontikis.net
 
 License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 
+Release 0.9.4 (XX Jun 2018)
+---------------------------
+* use Exceptions
+* PHPUnit tests
 
 Release 0.9.3 (28 Apr 2018)
 ---------------------------

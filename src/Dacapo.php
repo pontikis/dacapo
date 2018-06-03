@@ -27,8 +27,7 @@ class Dacapo
     const ERROR_MYSQLI_IS_REQUIRED  = 'mysqli extension is required';
     const ERROR_MYSQLND_IS_REQUIRED = 'mysqlnd extension is required';
     const ERROR_PGSQL_IS_REQUIRED   = 'pgsql extension is required';
-
-    const EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
+    const EXCEPTION_IDENTIFIER      = 'Dacapo_ErrorException';
 
     private $rdbms;
     private $db_server;
@@ -55,8 +54,6 @@ class Dacapo
     private $sql_placeholder;
 
     private $fetch_type;
-
-    private $messages;
 
     // ***
     private $conn;
@@ -134,18 +131,6 @@ class Dacapo
 
         $this->fetch_type = array_key_exists('fetch_type', $a_db) ? $a_db['fetch_type'] : 'ASSOC';
 
-        $this->messages = array_key_exists('messages', $a_db) ? $a_db['messages'] : [
-            'db_not_supported'            => 'Dacapo ERROR: Database not supported',
-            'mysqli_needed'               => 'Dacapo ERROR: mysqli extension is needed',
-            'mysqlnd_needed'              => 'Dacapo ERROR: mysqlnd extension is needed',
-            'pgsql_needed'                => 'Dacapo ERROR: pgsql extension is needed',
-            'invalid_placeholder'         => 'Dacapo ERROR: Invalid placeholder for prepared statements',
-            'invalid_number_of_variables' => 'Dacapo ERROR: Number of variables (%u) does not match number of parameters in statement (%u)',
-            'db_connect_error'            => 'Dacapo ERROR: Database connection error',
-            'wrong_sql'                   => 'Dacapo ERROR: Query failed',
-            'query_execution_error'       => 'Dacapo ERROR: Error executing query',
-        ];
-
         // initialize ----------------------------------------------------------
         $this->conn          = null;
         $this->sql           = null;
@@ -189,7 +174,7 @@ class Dacapo
 
         // Invalid placeholder for prepared statements
         //if ($this->use_pst && !in_array($this->pst_placeholder, ['question_mark', 'numbered', 'auto'])) {
-        //    throw new Exception($this->messages['invalid_placeholder']);
+        //    throw new Exception(['invalid_placeholder']);
         //}
     }
 
@@ -267,7 +252,6 @@ class Dacapo
         return $this->sql_placeholder;
     }
 
-
     /**
      * Set database schema.
      *
@@ -292,7 +276,6 @@ class Dacapo
             'direct_sql',
             'sql_placeholder',
             'fetch_type',
-            'messages',
         ];
 
         if (in_array($opt, $a_valid_options)) {
@@ -321,9 +304,9 @@ class Dacapo
     /**
      * Establish database connection.
      *
-     * @return mysqli|resource
+     * @throws ErrorException|mysqli_sql_exception
      *
-     * @throws mysqli_sql_exception|ErrorException
+     * @return mysqli|resource
      */
     public function dbConnect()
     {
@@ -435,8 +418,11 @@ class Dacapo
      *
      * @return bool (true on success)
      */
-    public function select($sql, $bind_params = [], $options = [])
-    {
+    public function select(
+        string $sql,
+        array $bind_params = [],
+        array $options = []
+    ) {
         return $this->_query($sql, $bind_params, $options);
     }
 
@@ -452,8 +438,11 @@ class Dacapo
      *
      * @return bool (true on success)
      */
-    public function insert($sql, $bind_params = [], $options = [])
-    {
+    public function insert(
+        string $sql,
+        array $bind_params = [],
+        array $options = []
+    ) {
         return $this->_query($sql, $bind_params, $options);
     }
 
@@ -468,8 +457,11 @@ class Dacapo
      *
      * @return bool (true on success)
      */
-    public function update($sql, $bind_params = [], $options = [])
-    {
+    public function update(
+        string $sql,
+        array $bind_params = [],
+        array $options = []
+    ) {
         return $this->_query($sql, $bind_params, $options);
     }
 
@@ -484,8 +476,11 @@ class Dacapo
      *
      * @return bool (true on success)
      */
-    public function delete($sql, $bind_params = [], $options = [])
-    {
+    public function delete(
+        string $sql,
+        array $bind_params = [],
+        array $options = []
+    ) {
         return $this->_query($sql, $bind_params, $options);
     }
 
@@ -745,7 +740,10 @@ class Dacapo
      *
      * @return bool
      */
-    private function _query($sql, $bind_params = [], $options = [])
+    private function _query(
+        string $sql,
+        array $bind_params = [],
+        array $options = [])
     {
         // get query type
         $a_sql = explode(' ', $sql);
@@ -1014,7 +1012,8 @@ class Dacapo
         $count_params_st = count($a_stmt) - 1;
         $count_params    = count($bind_params);
         if ($count_params_st != $count_params) {
-            $message = sprintf('Dacapo ERROR: Number of variables (%u) does not match number of parameters in statement (%u)', $count_params, $count_params_st);
+            $message = sprintf('Number of variables (%u) does not match number of parameters in statement (%u)',
+                $count_params, $count_params_st);
             throw new Exception($message);
         }
 
