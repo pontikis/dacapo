@@ -56,9 +56,6 @@ class Dacapo
 
     private $fetch_type;
 
-    /** @var int|mixed 0 suppress errors (else use PHP error level predefined constants) */
-    private $error_level;
-
     private $messages;
 
     // ***
@@ -74,8 +71,6 @@ class Dacapo
     private $a_fetch_type_mysql;
     private $a_fetch_type_postgres;
 
-    private $last_error;
-    private $last_errno;
     private $a_pst_placeholder;
     private $a_types;
 
@@ -139,9 +134,6 @@ class Dacapo
 
         $this->fetch_type = array_key_exists('fetch_type', $a_db) ? $a_db['fetch_type'] : 'ASSOC';
 
-        // 0 suppress errors (else use PHP error level predefined constants)
-        $this->error_level = array_key_exists('error_level', $a_db) ? $a_db['error_level'] : 0;
-
         $this->messages = array_key_exists('messages', $a_db) ? $a_db['messages'] : [
             'db_not_supported'            => 'Dacapo ERROR: Database not supported',
             'mysqli_needed'               => 'Dacapo ERROR: mysqli extension is needed',
@@ -161,8 +153,6 @@ class Dacapo
         $this->num_rows      = null;
         $this->insert_id     = null;
         $this->affected_rows = null;
-        $this->last_error    = null;
-        $this->last_errno    = null;
 
         if ('MYSQLi' === $this->rdbms) {
             $this->a_fetch_type_mysql = [
@@ -277,27 +267,6 @@ class Dacapo
         return $this->sql_placeholder;
     }
 
-    /**
-     * Get last error occured.
-     *
-     * @return string|null
-     */
-    public function getLastError()
-    {
-        return $this->last_error;
-    }
-
-    /**
-     * Get last error number occured.
-     *
-     * @return int|null
-     */
-    public function getLastErrorNumber()
-    {
-        return $this->last_errno;
-    }
-
-    // setters -----------------------------------------------------------------
 
     /**
      * Set database schema.
@@ -323,7 +292,6 @@ class Dacapo
             'direct_sql',
             'sql_placeholder',
             'fetch_type',
-            'error_level',
             'messages',
         ];
 
@@ -460,8 +428,6 @@ class Dacapo
      *
      * number of rows returned are available using $this->getNumRows()
      * data result is available using  $this->getData()
-     * error is available using  $this->getLastError()
-     * error number (if exists) is available using  $this->getLastErrorNumber()
      *
      * @param string $sql
      * @param array  $bind_params
@@ -479,7 +445,6 @@ class Dacapo
      *
      * last inserted id is available using $this->getInsertId()
      * affected rows available using $this->getAffectedRows()
-     * error is available using  $this->getLastError()
      *
      * @param string $sql
      * @param array  $bind_params
@@ -496,7 +461,6 @@ class Dacapo
      * Executes an UPDATE statement.
      *
      * affected rows available using $this->getAffectedRows()
-     * error is available using  $this->getLastError()
      *
      * @param string $sql
      * @param array  $bind_params
@@ -510,10 +474,9 @@ class Dacapo
     }
 
     /**
-     * Executes an DELETE statement.
+     * Executes a DELETE statement.
      *
      * affected rows available using $this->getAffectedRows()
-     * error is available using  $this->getLastError()
      *
      * @param string $sql
      * @param array  $bind_params
@@ -737,9 +700,12 @@ class Dacapo
 
     /**
      * Error handler function. Replaces PHP's error handler.
+     * The only reason to use this error_handler is that pgsql php extension DOES NOT throw exceptions.
+     * So, using this error_handler each E_WARNING from pgsql php extension is converted to ErrorException.
+     * After Postgres connect or query the previous error_hander is restored.
      *
-     * E_ERROR, E_PARSE, E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING are always handled by PHP.
-     * E_WARNING, E_NOTICE, E_USER_ERROR, E_USER_WARNING, E_USER_NOTICE are handled by this function.
+     * If your own error_handler already converts E_WARNING to ErrorException you don't need it
+     * In this case use setUseDacapoErrorHandler(false)
      *
      * @param int    $err_no
      * @param string $err_str
@@ -796,7 +762,6 @@ class Dacapo
             'fetch_type'      => $this->fetch_type, // select
             'get_row'         => false, // select
             'sequence'        => 'auto', // insert
-            'error_level'     => $this->error_level,
         ];
 
         $opt = array_merge($defaults, $options);
@@ -810,7 +775,6 @@ class Dacapo
         $fetch_type      = $opt['fetch_type'];
         $get_row         = $opt['get_row'];
         $sequence        = $opt['sequence'];
-        $error_level     = $opt['error_level'];
 
         if ('MYSQLi' == $this->rdbms) {
             $use_prepared_statements = ('select' == $mode ? $use_pst && $bind_params && extension_loaded('mysqlnd') : $use_pst && $bind_params);
@@ -842,7 +806,6 @@ class Dacapo
                 'sql_placeholder'         => $sql_placeholder,
                 'use_pst'                 => $use_pst,
                 'pst_placeholder'         => $pst_placeholder,
-                'error_level'             => $error_level,
                 'use_prepared_statements' => $use_prepared_statements,
             ];
             $res = $this->_create_sql($sql, $bind_params, $sql_options);
@@ -1030,7 +993,6 @@ class Dacapo
             'sql_placeholder'         => $this->sql_placeholder,
             'use_pst'                 => $this->use_pst,
             'pst_placeholder'         => $this->pst_placeholder,
-            'error_level'             => $this->error_level,
             'use_prepared_statements' => null,
         ];
 
@@ -1043,7 +1005,6 @@ class Dacapo
             $a_pst_placeholder = $this->a_pst_placeholder;
             $pst_placeholder   = $a_pst_placeholder[$this->rdbms];
         }
-        $error_level             = $opt['error_level'];
         $use_prepared_statements = $opt['use_prepared_statements'];
 
         $this->sql = null;
