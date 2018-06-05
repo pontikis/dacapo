@@ -377,6 +377,19 @@ final class MySQLTest extends TestCase
         );
     }
 
+    public function testSelect01el()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $sql           = 'SELECT * FROM customers_el';
+        $bind_params   = [];
+        $query_options = [];
+        $res           = $ds->select($sql, $bind_params, $query_options);
+        $this->assertSame(
+            105,
+            $ds->getNumRows()
+        );
+    }
+
     public function testSelectFails01()
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);

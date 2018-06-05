@@ -171,11 +171,6 @@ class Dacapo
 
         $this->mc_settings = $a_mc;
         $this->mc          = null;
-
-        // Invalid placeholder for prepared statements
-        //if ($this->use_pst && !in_array($this->pst_placeholder, ['question_mark', 'numbered', 'auto'])) {
-        //    throw new Exception(['invalid_placeholder']);
-        //}
     }
 
     public function getPgConnectTimout()
