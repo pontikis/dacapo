@@ -52,14 +52,13 @@ class Dacapo
     private $pg_connect_timeout;
 
     // query params ------------------------------------------------------------
+    /** @var string Postgres schema */
     private $db_schema;
 
     /** @var bool Use prepared statements or not */
     private $use_pst;
     private $pst_placeholder;
 
-    /** @var bool Use full SQL statements or not */
-    private $direct_sql;
     /** @var string variables placeholder in SQL statements */
     private $sql_placeholder;
 
@@ -153,7 +152,6 @@ class Dacapo
         $this->use_pst         = array_key_exists('use_pst', $a_db) ? $a_db['use_pst'] : false;
         $this->pst_placeholder = array_key_exists('pst_placeholder', $a_db) ? $a_db['pst_placeholder'] : 'auto';
 
-        $this->direct_sql      = array_key_exists('direct_sql', $a_db) ? $a_db['direct_sql'] : false;
         $this->sql_placeholder = array_key_exists('sql_placeholder', $a_db) ? $a_db['sql_placeholder'] : '?';
 
         $this->fetch_type = array_key_exists('fetch_type', $a_db) ? $a_db['fetch_type'] : 'ASSOC';
@@ -330,27 +328,6 @@ class Dacapo
     }
 
     /**
-     * Set option.
-     *
-     * @param $opt
-     * @param $val
-     */
-    public function set_option($opt, $val)
-    {
-        $a_valid_options = [
-            'use_pst',
-            'pst_placeholder',
-            'direct_sql',
-            'sql_placeholder',
-            'fetch_type',
-        ];
-
-        if (in_array($opt, $a_valid_options)) {
-            $this->$opt = $val;
-        }
-    }
-
-    /**
      * Set db connection.
      *
      * It might be useful only to MySQLi.
@@ -371,7 +348,7 @@ class Dacapo
     /**
      * Establish database connection.
      *
-     * @throws ErrorException|mysqli_sql_exception
+     * @throws DacapoErrorException
      *
      * @return mysqli|resource
      */
@@ -441,6 +418,8 @@ class Dacapo
 
     /**
      * Disconnect database (if connection has been established).
+     *
+     * @throws DacapoErrorException
      */
     public function dbDisconnect()
     {
@@ -847,7 +826,6 @@ class Dacapo
         $defaults = [
             'db_name'         => $this->db_name,
             'db_schema'       => $this->db_schema,
-            'direct_sql'      => $this->direct_sql,
             'sql_placeholder' => $this->sql_placeholder,
             'use_pst'         => $this->use_pst,
             'pst_placeholder' => $this->pst_placeholder,
@@ -860,7 +838,6 @@ class Dacapo
 
         $db_name         = $opt['db_name'];
         $db_schema       = $opt['db_schema'];
-        $direct_sql      = $opt['direct_sql'];
         $sql_placeholder = $opt['sql_placeholder'];
         $use_pst         = $opt['use_pst'];
         $pst_placeholder = $opt['pst_placeholder'];
@@ -893,17 +870,13 @@ class Dacapo
         $conn = $this->dbConnect();
 
         // sql -----------------------------------------------------------------
-        if ($direct_sql) {
-            $this->sql = $sql;
-        } else {
-            $sql_options = [
-                'sql_placeholder'         => $sql_placeholder,
-                'use_pst'                 => $use_pst,
-                'pst_placeholder'         => $pst_placeholder,
-                'use_prepared_statements' => $use_prepared_statements,
-            ];
-            $res = $this->_create_sql($sql, $bind_params, $sql_options);
-        }
+        $sql_options = [
+            'sql_placeholder'         => $sql_placeholder,
+            'use_pst'                 => $use_pst,
+            'pst_placeholder'         => $pst_placeholder,
+            'use_prepared_statements' => $use_prepared_statements,
+        ];
+        $res = $this->_create_sql($sql, $bind_params, $sql_options);
 
         // MYSQLi --------------------------------------------------------------
         if ('MYSQLi' === $this->rdbms) {
