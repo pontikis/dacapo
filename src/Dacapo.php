@@ -79,8 +79,10 @@ class Dacapo
 
     /** @var array data returned */
     private $data;
+    private $row;
     private $num_rows;
     private $insert_id;
+    private $pg_sequence;
     private $affected_rows;
 
     private $a_types;
