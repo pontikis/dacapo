@@ -53,11 +53,7 @@ final class MySQLTest extends TestCase
             'db_passwd'       => $GLOBALS['MYSQL_PASSWD'],
             'db_name'         => $GLOBALS['MYSQL_DBNAME'],
             // optional
-            'db_port'         => $GLOBALS['MYSQL_PORT'],
-            'charset'         => $GLOBALS['MYSQL_CHARSET'],
-            // to be removed
-            'use_pst'         => true,
-            'pst_placeholder' => 'question_mark',
+            //'charset'         => $GLOBALS['MYSQL_CHARSET'],
         ];
 
         self::$db_with_server_ip              = self::$db_with_server_name;
@@ -91,10 +87,8 @@ final class MySQLTest extends TestCase
         self::$db_wrong_dbname_with_server_ip['db_name'] = $GLOBALS['MYSQL_DBNAME_WRONG'];
 
         self::$db_wrong_port_with_server_name            = self::$db_with_server_name;
-        self::$db_wrong_port_with_server_name['db_port'] = $GLOBALS['MYSQL_PORT_WRONG'];
 
         self::$db_wrong_port_with_server_ip            = self::$db_with_server_ip;
-        self::$db_wrong_port_with_server_ip['db_port'] = $GLOBALS['MYSQL_PORT_WRONG'];
 
         self::$db_wrong_charset_with_server_name            = self::$db_with_server_name;
         self::$db_wrong_charset_with_server_name['charset'] = $GLOBALS['MYSQL_CHARSET_WRONG'];
@@ -328,6 +322,7 @@ final class MySQLTest extends TestCase
         }
 
         $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
@@ -341,6 +336,7 @@ final class MySQLTest extends TestCase
         }
 
         $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);        
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -349,6 +345,7 @@ final class MySQLTest extends TestCase
     public function testConnectFails10()
     {
         $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);        
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
@@ -356,6 +353,7 @@ final class MySQLTest extends TestCase
     public function testConnectFails10a()
     {
         $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);        
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();

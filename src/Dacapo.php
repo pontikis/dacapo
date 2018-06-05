@@ -23,26 +23,36 @@ use Exception;
  */
 class Dacapo
 {
-    const ERROR_RDBMS_NOT_SUPPORTED  = 'Database not supported';
-    const ERROR_MYSQLI_IS_REQUIRED   = 'mysqli extension is required';
-    const ERROR_MYSQLND_IS_REQUIRED  = 'mysqlnd extension is required';
-    const ERROR_PGSQL_IS_REQUIRED    = 'pgsql extension is required';
+    const ERROR_RDBMS_NOT_SUPPORTED = 'Database not supported';
+    const ERROR_MYSQLI_IS_REQUIRED  = 'mysqli extension is required';
+    const ERROR_MYSQLND_IS_REQUIRED = 'mysqlnd extension is required';
+    const ERROR_PGSQL_IS_REQUIRED   = 'pgsql extension is required';
+
+    const ERROR_DBSERVER_IS_REQUIRED = 'Database server name or IP is required';
+    const ERROR_DBNAME_IS_REQUIRED   = 'Database name is required';
+    const ERROR_DBUSER_IS_REQUIRED   = 'Database user is required';
+    const ERROR_DBPASSWD_IS_REQUIRED = 'Database password is required';
+
     const ERROR_EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
 
+    // error handler -----------------------------------------------------------
+    private $use_dacapo_error_handler;
+
+    // connection params -------------------------------------------------------
     private $rdbms;
     private $db_server;
     private $db_user;
     private $db_passwd;
     private $db_name;
 
-    private $db_schema;
     private $db_port;
     private $charset;
 
     private $pg_connect_force_new;
     private $pg_connect_timeout;
 
-    private $use_dacapo_error_handler;
+    // query params ------------------------------------------------------------
+    private $db_schema;
 
     /** @var bool Use prepared statements or not */
     private $use_pst;
@@ -71,6 +81,7 @@ class Dacapo
     private $a_pst_placeholder;
     private $a_types;
 
+    // memcached params --------------------------------------------------------
     private $mc_settings;
     private $mc;
 
@@ -84,6 +95,10 @@ class Dacapo
      */
     public function __construct(array $a_db, array $a_mc)
     {
+        // error handler -------------------------------------------------------
+        $this->use_dacapo_error_handler = true;
+
+        // connection params ---------------------------------------------------
         $this->rdbms = $a_db['rdbms'];
 
         // RDBMS not supported
@@ -106,23 +121,35 @@ class Dacapo
             }
         }
 
-        $this->db_server = $a_db['db_server'];
-        $this->db_user   = $a_db['db_user'];
-        $this->db_passwd = $a_db['db_passwd'];
-        $this->db_name   = $a_db['db_name'];
+        $this->db_server = array_key_exists('db_server', $a_db) ? $a_db['db_server'] : null;
+        $this->db_name   = array_key_exists('db_name', $a_db) ? $a_db['db_name'] : null;
+        $this->db_user   = array_key_exists('db_user', $a_db) ? $a_db['db_user'] : null;
+        $this->db_passwd = array_key_exists('db_passwd', $a_db) ? $a_db['db_passwd'] : null;
 
-        // other params
-        $this->db_schema          = array_key_exists('db_schema', $a_db) ? $a_db['db_schema'] : null;
-        $this->db_port            = array_key_exists('db_port', $a_db) ? $a_db['db_port'] : null;
-        $this->charset            = array_key_exists('charset', $a_db) ? $a_db['charset'] : null;
-        $this->pg_connect_timeout = array_key_exists('pg_connect_timeout', $a_db) ? $a_db['pg_connect_timeout'] : null;
+        if (null === $this->db_server) {
+            throw new Exception(self::ERROR_DBSERVER_IS_REQUIRED);
+        }
 
-        $this->use_dacapo_error_handler = array_key_exists('use_dacapo_error_handler', $a_db) ?
-        $a_db['use_dacapo_error_handler'] :
-        true;
+        if (null === $this->db_name) {
+            throw new Exception(self::ERROR_DBNAME_IS_REQUIRED);
+        }
 
-        $this->pg_connect_force_new = array_key_exists('pg_connect_force_new', $a_db) ? $a_db['pg_connect_force_new'] : false;
+        if (null === $this->db_user) {
+            throw new Exception(self::ERROR_DBUSER_IS_REQUIRED);
+        }
 
+        if (null === $this->db_passwd) {
+            throw new Exception(self::ERROR_DBPASSWD_IS_REQUIRED);
+        }
+
+        // optional connection params
+        $this->db_port              = null;
+        $this->charset              = array_key_exists('charset', $a_db) ? $a_db['charset'] : null;
+        $this->pg_connect_timeout   = null;
+        $this->pg_connect_force_new = false;
+
+        // query params --------------------------------------------------------
+        $this->db_schema       = array_key_exists('db_schema', $a_db) ? $a_db['db_schema'] : null;
         $this->use_pst         = array_key_exists('use_pst', $a_db) ? $a_db['use_pst'] : false;
         $this->pst_placeholder = array_key_exists('pst_placeholder', $a_db) ? $a_db['pst_placeholder'] : 'auto';
 
@@ -131,7 +158,6 @@ class Dacapo
 
         $this->fetch_type = array_key_exists('fetch_type', $a_db) ? $a_db['fetch_type'] : 'ASSOC';
 
-        // initialize ----------------------------------------------------------
         $this->conn          = null;
         $this->sql           = null;
         $this->data          = null;
@@ -173,18 +199,7 @@ class Dacapo
         $this->mc          = null;
     }
 
-    public function getPgConnectTimout()
-    {
-        return $this->pg_connect_timeout;
-    }
-
-    public function setPgConnectTimout(int $seconds)
-    {
-        $this->pg_connect_timeout = $seconds;
-
-        return $this;
-    }
-
+    // error handler -----------------------------------------------------------
     public function getUseDacapoErrorHandler()
     {
         return $this->use_dacapo_error_handler;
@@ -197,7 +212,44 @@ class Dacapo
         return $this;
     }
 
-    // getters -----------------------------------------------------------------
+    // connection --------------------------------------------------------------
+    public function getDbPort()
+    {
+        return $this->db_port;
+    }
+
+    public function setDbPort(int $port)
+    {
+        $this->db_port = $port;
+
+        return $this;
+    }
+
+    public function getPgConnectForceNew()
+    {
+        return $this->pg_connect_force_new;
+    }
+
+    public function setPgConnectForceNew(bool $flag)
+    {
+        $this->pg_connect_force_new = $flag;
+
+        return $this;
+    }
+
+    public function getPgConnectTimout()
+    {
+        return $this->pg_connect_timeout;
+    }
+
+    public function setPgConnectTimout(int $seconds)
+    {
+        $this->pg_connect_timeout = $seconds;
+
+        return $this;
+    }
+
+    // query -------------------------------------------------------------------
 
     /**
      * Get data returned from a select query.
@@ -309,9 +361,6 @@ class Dacapo
             $this->applyDacapoErrorHandler();
 
             if ('MYSQLi' === $this->rdbms) {
-                // force mysqli to throw mysqli_sql_exception for errors instead of warnings
-                //mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
                 if ($this->db_port) {
                     $conn = new \mysqli(
                         $this->db_server,
@@ -328,18 +377,24 @@ class Dacapo
                         $this->db_name
                     );
                 }
+
                 if ($this->charset) {
                     $conn->set_charset($this->charset);
                 }
+
                 $this->conn = $conn;
             }
 
             if ('POSTGRES' === $this->rdbms) {
-                $dsn = 'host=' . $this->db_server . ' ' .
-                'port=' . $this->db_port . ' ' .
-                'dbname=' . $this->db_name . ' ' .
-                'user=' . $this->db_user . ' ' .
-                'password=' . $this->db_passwd;
+                $dsn = 'host=' . $this->db_server . ' ';
+
+                if ($this->db_port) {
+                    $dsn .= 'port=' . $this->db_port . ' ';
+                }
+
+                $dsn .= 'dbname=' . $this->db_name . ' ';
+                $dsn .= 'user=' . $this->db_user . ' ';
+                $dsn .= 'password=' . $this->db_passwd;
 
                 if ($this->pg_connect_timeout) {
                     $dsn .= ' connect_timeout=' . $this->pg_connect_timeout;
@@ -350,6 +405,11 @@ class Dacapo
                 } else {
                     $conn = pg_connect($dsn);
                 }
+
+                if ($this->charset) {
+                    pg_set_client_encoding($conn, $this->charset);
+                }
+
                 $this->conn = $conn;
             }
 
