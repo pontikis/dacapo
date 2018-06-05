@@ -377,6 +377,7 @@ final class PostgresqlTest extends TestCase
     public function testSelect01()
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);
         $sql           = 'SELECT * FROM test.customers_en';
         $bind_params   = [];
         $query_options = [];
@@ -387,6 +388,7 @@ final class PostgresqlTest extends TestCase
         );
 
         $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql           = 'SELECT * FROM customers_en';
         $bind_params   = [];
@@ -401,6 +403,7 @@ final class PostgresqlTest extends TestCase
     public function testSelect01el()
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
         $sql           = 'SELECT * FROM test.customers_el';
         $bind_params   = [];
         $query_options = [];
@@ -411,6 +414,7 @@ final class PostgresqlTest extends TestCase
         );
 
         $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql           = 'SELECT * FROM customers_el';
         $bind_params   = [];
@@ -425,6 +429,7 @@ final class PostgresqlTest extends TestCase
     public function testSelect02()
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
         $sql           = 'SELECT lastname FROM test.customers_en WHERE id=?';
         $bind_params   = [1];
         $query_options = ['get_row' => true];
@@ -436,6 +441,7 @@ final class PostgresqlTest extends TestCase
         );
 
         $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
         $bind_params   = [1];
@@ -448,6 +454,7 @@ final class PostgresqlTest extends TestCase
         );
 
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $sql           = 'SELECT lastname FROM test.customers_en WHERE id=?';
         $bind_params   = [1];
@@ -460,6 +467,7 @@ final class PostgresqlTest extends TestCase
         );
 
         $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET_WRONG']);
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
@@ -476,6 +484,7 @@ final class PostgresqlTest extends TestCase
     public function testSelect02el()
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
         $sql           = 'SELECT lastname FROM test.customers_el WHERE id=?';
         $bind_params   = [1];
         $query_options = ['get_row' => true];
@@ -487,6 +496,7 @@ final class PostgresqlTest extends TestCase
         );
 
         $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
         $bind_params   = [1];
@@ -497,6 +507,70 @@ final class PostgresqlTest extends TestCase
             'Γεωργίου',
             $row['lastname']
         );
+
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);     
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+        $sql           = 'SELECT lastname FROM test.customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Γεωργίου',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);        
+        $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
+        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Γεωργίου',
+            $row['lastname']
+        );   
+
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);     
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET_WRONG']);
+        $sql           = 'SELECT lastname FROM test.customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+
+        if ('WIN1256' === $GLOBALS['POSTGRES_CHARSET_WRONG']) {
+            $this->expectException(DacapoErrorException::class);
+        }
+
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertNotEquals(
+            'Γεωργίου',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setPgConnectForceNew(true);        
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET_WRONG']);        
+        $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
+        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+
+        if ('WIN1256' === $GLOBALS['POSTGRES_CHARSET_WRONG']) {
+            $this->expectException(DacapoErrorException::class);
+        }
+
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertNotEquals(
+            'Γεωργίου',
+            $row['lastname']
+        );               
     }
 
     public function testSelectFails01()
