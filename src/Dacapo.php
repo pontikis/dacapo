@@ -17,9 +17,9 @@ use Exception;
  * avoid boolean columns, use integer instead (1,0)
  *
  * @copyright  Christos Pontikis
- * @license    http://opensource.org/licenses/MIT MIT
+ * @license    http://opensource.org/licenses/MIT
  *
- * @version    0.9.3 (28 Apr 2018)
+ * @version    1.0.0 (XX Jun 2018)
  */
 class Dacapo
 {
@@ -33,9 +33,16 @@ class Dacapo
     const ERROR_DBUSER_IS_REQUIRED   = 'Database user is required';
     const ERROR_DBPASSWD_IS_REQUIRED = 'Database password is required';
 
+    const ERROR_UNSUPPORTED_QUERY = 'Unsupported query type';
+
     const ERROR_EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
 
     const DEFAULT_SQL_PLACEHOLDER = '?';
+
+    const SELECT_QUERY = 'select';
+    const UPDATE_QUERY = 'update';
+    const INSERT_QUERY = 'insert';
+    const DELETE_QUERY = 'delete';
 
     // error handler -----------------------------------------------------------
     private $use_dacapo_error_handler;
@@ -56,11 +63,11 @@ class Dacapo
     private $conn;
 
     // query params ------------------------------------------------------------
+    private $query_type;
+
     /** @var string Postgres schema */
     private $db_schema;
 
-    /** @var bool Use prepared statements or not */
-    private $use_pst;
     private $pst_placeholder;
 
     /** @var string variables placeholder in SQL statements */
@@ -68,7 +75,6 @@ class Dacapo
 
     private $fetch_type;
 
-    // ***
     private $sql;
 
     /** @var array data returned */
@@ -77,10 +83,6 @@ class Dacapo
     private $insert_id;
     private $affected_rows;
 
-    private $a_fetch_type_mysql;
-    private $a_fetch_type_postgres;
-
-    private $a_pst_placeholder;
     private $a_types;
 
     // memcached params --------------------------------------------------------
@@ -153,41 +155,28 @@ class Dacapo
         $this->pg_connect_force_new = false;
 
         // query params --------------------------------------------------------
-        $this->db_schema       = null;
+        $this->sql_placeholder = self::DEFAULT_SQL_PLACEHOLDER;
 
-        $this->use_pst         = array_key_exists('use_pst', $a_db) ? $a_db['use_pst'] : false;
-        $this->pst_placeholder = array_key_exists('pst_placeholder', $a_db) ? $a_db['pst_placeholder'] : 'auto';
+        $this->db_schema = null;
 
-        $this->sql_placeholder = array_key_exists('sql_placeholder', $a_db) ? $a_db['sql_placeholder'] : '?';
+        $this->query_type = null;
 
-        $this->fetch_type = array_key_exists('fetch_type', $a_db) ? $a_db['fetch_type'] : 'ASSOC';
+        switch ($this->rdbms) {
+            case 'MYSQLi':
+                $this->pst_placeholder = 'question_mark';
+                $this->fetch_type      = MYSQLI_ASSOC;
+                break;
+            case 'POSTGRES':
+                $this->pst_placeholder = 'numbered';
+                $this->fetch_type      = PGSQL_ASSOC;
+                break;
+        }
 
         $this->sql           = null;
         $this->data          = null;
         $this->num_rows      = null;
         $this->insert_id     = null;
         $this->affected_rows = null;
-
-        if ('MYSQLi' === $this->rdbms) {
-            $this->a_fetch_type_mysql = [
-                'ASSOC' => MYSQLI_ASSOC,
-                'NUM'   => MYSQLI_NUM,
-                'BOTH'  => MYSQLI_BOTH,
-            ];
-        }
-
-        if ('POSTGRES' === $this->rdbms) {
-            $this->a_fetch_type_postgres = [
-                'ASSOC' => PGSQL_ASSOC,
-                'NUM'   => PGSQL_NUM,
-                'BOTH'  => PGSQL_BOTH,
-            ];
-        }
-
-        $this->a_pst_placeholder = [
-            'MYSQLi'   => 'question_mark',
-            'POSTGRES' => 'numbered',
-        ];
 
         // Bind parameters. Types: s = string, i = integer, d = double,  b = blob
         $this->a_types = [
@@ -241,13 +230,6 @@ class Dacapo
         return $this;
     }
 
-    public function reSetCharset()
-    {
-        $this->charset = null;
-
-        return $this;
-    }
-
     public function getPgConnectForceNew()
     {
         return $this->pg_connect_force_new;
@@ -273,6 +255,71 @@ class Dacapo
     }
 
     // query -------------------------------------------------------------------
+
+    /**
+     * Get the symbol used for SQL placeholder.
+     *
+     * @return string
+     */
+    public function getSqlPlaceholder()
+    {
+        return $this->sql_placeholder;
+    }
+
+    public function setSqlPlaceholder(string $str)
+    {
+        $this->sql_placeholder = $str;
+
+        return $this;
+    }
+
+    public function getFetchType()
+    {
+        return $this->fetch_type;
+    }
+
+    public function setFetchTypeAssoc()
+    {
+        switch ($this->rdbms) {
+            case 'MYSQLi':
+                $this->fetch_type = MYSQLI_ASSOC;
+                break;
+            case 'POSTGRES':
+                $this->fetch_type = PGSQL_ASSOC;
+                break;
+        }
+
+        return $this;
+    }
+
+    public function setFetchTypeNum()
+    {
+        switch ($this->rdbms) {
+            case 'MYSQLi':
+                $this->fetch_type = MYSQLI_NUM;
+                break;
+            case 'POSTGRES':
+                $this->fetch_type = PGSQL_NUM;
+                break;
+        }
+
+        return $this;
+    }
+
+    public function setFetchTypeBoth()
+    {
+        switch ($this->rdbms) {
+            case 'MYSQLi':
+                $this->fetch_type = MYSQLI_BOTH;
+                break;
+            case 'POSTGRES':
+                $this->fetch_type = PGSQL_BOTH;
+                break;
+        }
+
+        return $this;
+    }
+
     public function getDbSchema()
     {
         return $this->db_schema;
@@ -322,18 +369,6 @@ class Dacapo
     {
         return $this->affected_rows;
     }
-
-    /**
-     * Get the symbol used for SQL placeholder.
-     *
-     * @return mixed|string
-     */
-    public function getSqlPlaceholder()
-    {
-        return $this->sql_placeholder;
-    }
-
-    // MAIN FUNCTIONS ----------------------------------------------------------
 
     /**
      * Establish database connection.
@@ -431,32 +466,6 @@ class Dacapo
     }
 
     /**
-     * Escape and Quote string to be safe for SQL queries.
-     *
-     * @param $str
-     *
-     * @return string
-     */
-    public function qstr($str)
-    {
-        $conn = $this->dbConnect();
-        if (!$conn) {
-            return false;
-        }
-        $res = '';
-        switch ($this->rdbms) {
-            case 'MYSQLi':
-                $res = '\'' . $conn->real_escape_string($str) . '\'';
-                break;
-            case 'POSTGRES':
-                $res = pg_escape_literal($conn, $str);
-                break;
-        }
-
-        return $res;
-    }
-
-    /**
      * Executes a SELECT statement.
      *
      * number of rows returned are available using $this->getNumRows()
@@ -473,7 +482,7 @@ class Dacapo
         array $bind_params = [],
         array $options = []
     ) {
-        $this->_query($sql, $bind_params, $options);
+        $this->dacapoQuery($sql, $bind_params, $options);
     }
 
     /**
@@ -493,7 +502,7 @@ class Dacapo
         array $bind_params = [],
         array $options = []
     ) {
-        $this->_query($sql, $bind_params, $options);
+        $this->dacapoQuery($sql, $bind_params, $options);
     }
 
     /**
@@ -512,7 +521,7 @@ class Dacapo
         array $bind_params = [],
         array $options = []
     ) {
-        $this->_query($sql, $bind_params, $options);
+        $this->dacapoQuery($sql, $bind_params, $options);
     }
 
     /**
@@ -531,7 +540,7 @@ class Dacapo
         array $bind_params = [],
         array $options = []
     ) {
-        $this->_query($sql, $bind_params, $options);
+        $this->dacapoQuery($sql, $bind_params, $options);
     }
 
     /**
@@ -597,43 +606,35 @@ class Dacapo
      *
      * @param $sql
      */
-    public function execute($sql)
+    public function execute(string $sql)
     {
         // get database connection ---------------------------------------------
         $conn = $this->dbConnect();
 
         // MYSQLi --------------------------------------------------------------
         if ('MYSQLi' == $this->rdbms) {
-            $rs = $conn->multi_query($sql);
-            if (false === $rs) {
-                //throw new Exception($conn->error);
-            }
+            $conn->multi_query($sql);
         }
 
         // POSTGRES ------------------------------------------------------------
         if ('POSTGRES' == $this->rdbms) {
-            $rs = pg_query($conn, $sql);
+            pg_query($conn, $sql);
         }
     }
-
-    // PUBLIC FUNCTIONS - UTILITIES --------------------------------------------
 
     /**
      * SQL lower case.
      *
      * @param mixed $sql_string
      */
-    public function lower($sql_string)
+    public function lower(string $sql_string)
     {
-        $res = '';
         if ('MYSQLi' == $this->rdbms) {
-            $res = 'LOWER(' . $sql_string . ')';
+            return 'LOWER(' . $sql_string . ')';
         }
         if ('POSTGRES' == $this->rdbms) {
-            $res = 'LOWER(' . $sql_string . ')';
+            return 'LOWER(' . $sql_string . ')';
         }
-
-        return $res;
     }
 
     /**
@@ -644,17 +645,17 @@ class Dacapo
      *
      * @return string
      */
-    public function limit($row_count, $offset)
+    public function limit(int $row_count, int $offset)
     {
-        if ('MYSQLi' == $this->rdbms) {
+        if ('MYSQLi' === $this->rdbms) {
             return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
         }
-        if ('POSTGRES' == $this->rdbms) {
+        if ('POSTGRES' === $this->rdbms) {
             return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
         }
     }
 
-    // PUBLIC FUNCTIONS - MEMCACHED --------------------------------------------
+    // memcached ---------------------------------------------------------------
 
     /**
      * Initialize memcached and add server(s) to cache pool.
@@ -745,12 +746,10 @@ class Dacapo
 
     /**
      * Error handler function. Replaces PHP's error handler.
-     * The only reason to use this error_handler is that pgsql php extension DOES NOT throw exceptions.
-     * So, using this error_handler each E_WARNING from pgsql php extension is converted to ErrorException.
-     * After Postgres connect or query the previous error_hander is restored.
-     *
+     * The only reason to use this error_handler is to convert php errors (usually E_WARNING)
+     * from mysqli and pgsql php extension.
      * If your own error_handler already converts E_WARNING to ErrorException you don't need it
-     * In this case use setUseDacapoErrorHandler(false)
+     * In this case use setUseDacapoErrorHandler(false).
      *
      * @param int    $err_no
      * @param string $err_str
@@ -801,7 +800,7 @@ class Dacapo
      *
      * @return bool
      */
-    private function _query(
+    private function dacapoQuery(
         string $sql,
         array $bind_params = [],
         array $options = [])
@@ -809,203 +808,131 @@ class Dacapo
         $this->applyDacapoErrorHandler();
 
         // get query type
-        $a_sql = explode(' ', $sql);
-        $mode  = strtolower($a_sql[0]);
+        $a_sql            = explode(' ', trim($sql));
+        $this->query_type = strtolower($a_sql[0]);
 
-        // options -------------------------------------------------------------
-        $defaults = [
-            'db_name'         => $this->db_name,
-            'db_schema'       => $this->db_schema,
-            'sql_placeholder' => $this->sql_placeholder,
-            'use_pst'         => $this->use_pst,
-            'pst_placeholder' => $this->pst_placeholder,
-            'fetch_type'      => $this->fetch_type, // select
-            'get_row'         => false, // select
-            'sequence'        => 'auto', // insert
-        ];
+        $bind_params_count = count($bind_params);
 
-        $opt = array_merge($defaults, $options);
-
-        $db_name         = $opt['db_name'];
-        $db_schema       = $opt['db_schema'];
-        $sql_placeholder = $opt['sql_placeholder'];
-        $use_pst         = $opt['use_pst'];
-        $pst_placeholder = $opt['pst_placeholder'];
-        $fetch_type      = $opt['fetch_type'];
-        $get_row         = $opt['get_row'];
-        $sequence        = $opt['sequence'];
-
-        if ('MYSQLi' == $this->rdbms) {
-            $use_prepared_statements = ('select' == $mode ? $use_pst && $bind_params && extension_loaded('mysqlnd') : $use_pst && $bind_params);
-        } elseif ('POSTGRES' == $this->rdbms) {
-            $use_prepared_statements = $use_pst;
+        if (!in_array($this->query_type,
+            [
+                self::SELECT_QUERY,
+                self::UPDATE_QUERY,
+                self::INSERT_QUERY,
+                self::DELETE_QUERY,
+            ])) {
+            trigger_error(self::ERROR_UNSUPPORTED_QUERY, E_WARNING);
         }
 
-        $use_prepared_statements = true;
+        $get_row  = array_key_exists('get_row', $options) ? $options['get_row'] : false;
+        $sequence = 'auto';
 
-        // initialize ----------------------------------------------------------
-        if (in_array($mode, ['select'])) {
-            $this->data     = null;
-            $this->num_rows = null;
-            $a_data         = [];
-        }
-        if (in_array($mode, ['insert'])) {
-            $this->insert_id = null;
-        }
-        if (in_array($mode, ['insert', 'update', 'delete'])) {
-            $this->affected_rows = null;
-        }
+        $this->data          = null;
+        $this->num_rows      = null;
+        $a_data              = [];
+        $this->insert_id     = null;
+        $this->affected_rows = null;
 
         // get database connection ---------------------------------------------
         $conn = $this->dbConnect();
 
-        // sql -----------------------------------------------------------------
-        $sql_options = [
-            'sql_placeholder'         => $sql_placeholder,
-            'use_pst'                 => $use_pst,
-            'pst_placeholder'         => $pst_placeholder,
-            'use_prepared_statements' => $use_prepared_statements,
-        ];
-        $res = $this->_create_sql($sql, $bind_params, $sql_options);
+        // construct sql -------------------------------------------------------
+        $a_stmt = explode($this->sql_placeholder, $sql);
+
+        if ('question_mark' === $this->pst_placeholder) {
+            $this->sql = implode('?', $a_stmt);
+        } elseif ('numbered' === $this->pst_placeholder) {
+            $this->sql = '';
+            foreach ($a_stmt as $key => $part) {
+                $idx = $key + 1;
+                $this->sql .= $part . ($key < $bind_params_count ? '$' . $idx : '');
+            }
+        }
 
         // MYSQLi --------------------------------------------------------------
         if ('MYSQLi' === $this->rdbms) {
-            // force mysqli to throw mysqli_sql_exception for errors instead of warnings
-            //mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+            // USE database
+            $conn->query('USE ' . $this->db_name);
 
-            // USE database ----------------------------------------------------
-            $rs = $conn->query('USE ' . $db_name);
-            if (false === $rs) {
-                //throw new Exception($conn->error);
+            // Prepare statement
+            $stmt = $conn->prepare($this->sql);
+            if (false === $stmt) {
+                trigger_error($conn->error, E_WARNING);
             }
 
-            // fetch type (select) ---------------------------------------------
-            $a_fetch_type = $this->a_fetch_type_mysql;
+            if ($bind_params_count > 0) {
+                // use call_user_func_array, as $stmt->bind_param('s', $param); does not accept params array
+                $a_params = [];
+                $a_types  = $this->a_types;
 
-            // proceed to query ------------------------------------------------
-            if ($use_prepared_statements) {
-                // Prepare statement
-                $stmt = $conn->prepare($this->sql);
-                if (false === $stmt) {
-                    trigger_error($conn->error, E_WARNING);
+                $param_type = '';
+                $n          = count($bind_params);
+                for ($i = 0; $i < $n; ++$i) {
+                    $param_type .= $a_types[gettype($bind_params[$i])];
                 }
 
-                if (count($bind_params)) {
-                    // use call_user_func_array, as $stmt->bind_param('s', $param); does not accept params array
-                    $a_params = [];
-                    $a_types  = $this->a_types;
+                // with call_user_func_array, array params must be passed by reference
+                $a_params[] = &$param_type;
 
-                    $param_type = '';
-                    $n          = count($bind_params);
-                    for ($i = 0; $i < $n; ++$i) {
-                        $param_type .= $a_types[gettype($bind_params[$i])];
-                    }
-
+                for ($i = 0; $i < $n; ++$i) {
                     // with call_user_func_array, array params must be passed by reference
-                    $a_params[] = &$param_type;
+                    $a_params[] = &$bind_params[$i];
+                }
+                call_user_func_array([$stmt, 'bind_param'], $a_params);
+            }
 
-                    for ($i = 0; $i < $n; ++$i) {
-                        // with call_user_func_array, array params must be passed by reference
-                        $a_params[] = &$bind_params[$i];
-                    }
-                    call_user_func_array([$stmt, 'bind_param'], $a_params);
+            // Execute statement
+            $stmt->execute();
+
+            if (self::SELECT_QUERY === $this->query_type) {
+                // Fetch result to array
+                $rs = $stmt->get_result();
+
+                $this->num_rows = $rs->num_rows;
+
+                while ($row = $rs->fetch_array($this->fetch_type)) {
+                    array_push($a_data, $row);
                 }
 
-                // Execute statement
-                $stmt->execute();
+                // free result
+                $stmt->free_result();
 
-                if ($stmt->error) {
-                    //throw new Exception($stmt->error);
-                }
-
-                if (in_array($mode, ['select'])) {
-                    // Fetch result to array
-                    $rs = $stmt->get_result();
-
-                    $this->num_rows = $rs->num_rows;
-
-                    while ($row = $rs->fetch_array($a_fetch_type[$fetch_type])) {
-                        array_push($a_data, $row);
-                    }
-
-                    // free result
-                    $stmt->free_result();
-
-                    $this->data = $a_data;
-                    if ($get_row && $a_data) {
-                        $this->data = $a_data[0];
-                    }
-                }
-
-                if (in_array($mode, ['insert'])) {
-                    $this->insert_id = $stmt->insert_id;
-                }
-
-                if (in_array($mode, ['insert', 'update', 'delete'])) {
-                    $this->affected_rows = $stmt->affected_rows;
-                }
-
-                // close statement
-                $stmt->close();
-            } else {
-                $rs = $conn->query($this->sql);
-                if (false === $rs) {
-                    //throw new Exception($conn->error);
-                }
-
-                if (in_array($mode, ['select'])) {
-                    $this->num_rows = $rs->num_rows;
-
-                    if ($this->num_rows > 0) {
-                        $rs->data_seek(0);
-                        if (extension_loaded('mysqlnd')) {
-                            // mysqlnd available
-                            $a_data = $rs->fetch_all($a_fetch_type[$fetch_type]);
-                        } else {
-                            while ($row = $rs->fetch_array($a_fetch_type[$fetch_type])) {
-                                array_push($a_data, $row);
-                            }
-                        }
-                    }
-                    $rs->free();
-
-                    $this->data = $a_data;
-                    if ($get_row && $a_data) {
-                        $this->data = $a_data[0];
-                    }
-                }
-
-                if (in_array($mode, ['insert'])) {
-                    $this->insert_id = $conn->insert_id;
-                }
-
-                if (in_array($mode, ['insert', 'update', 'delete'])) {
-                    $this->affected_rows = $conn->affected_rows;
+                $this->data = $a_data;
+                if ($get_row && $a_data) {
+                    $this->data = $a_data[0];
                 }
             }
+
+            if (self::INSERT_QUERY === $this->query_type) {
+                $this->insert_id = $stmt->insert_id;
+            }
+
+            if (in_array($this->query_type,
+                [
+                    self::UPDATE_QUERY,
+                    self::INSERT_QUERY,
+                    self::DELETE_QUERY,
+                ])) {
+                $this->affected_rows = $stmt->affected_rows;
+            }
+
+            // Close statement
+            $stmt->close();
         }
 
         // POSTGRES ------------------------------------------------------------
         if ('POSTGRES' == $this->rdbms) {
             // SET search_path -------------------------------------------------
-            if ($db_schema) {
-                $rs = pg_query($conn, 'SET search_path TO ' . $db_schema);
+            if ($this->db_schema) {
+                pg_query($conn, 'SET search_path TO ' . $this->db_schema);
             }
 
-            // fetch type (select) ---------------------------------------------
-            $a_fetch_type = $this->a_fetch_type_postgres;
+            // proceed to query
+            $rs = pg_query_params($conn, $this->sql, $bind_params);
 
-            // proceed to query ------------------------------------------------
-            if ($use_prepared_statements) {
-                $rs = pg_query_params($conn, $this->sql, $bind_params);
-            } else {
-                $rs = pg_query($conn, $this->sql);
-            }
-
-            if (in_array($mode, ['select'])) {
+            if (self::SELECT_QUERY === $this->query_type) {
                 $this->num_rows = pg_num_rows($rs);
 
-                while ($row = pg_fetch_array($rs, null, $a_fetch_type[$fetch_type])) {
+                while ($row = pg_fetch_array($rs, null, $this->fetch_type)) {
                     array_push($a_data, $row);
                 }
 
@@ -1015,11 +942,10 @@ class Dacapo
                 }
             }
 
-            if (in_array($mode, ['insert'])) {
+            if (self::INSERT_QUERY === $this->query_type) {
                 // get last inserted value of serial column
                 if ($sequence) {
                     if ('auto' == $sequence) {
-                        $a_sql         = explode(' ', $this->sql);
                         $table_name    = $a_sql[2];
                         $sequence_name = $table_name . '_id_seq';
                     } else {
@@ -1031,84 +957,17 @@ class Dacapo
                 }
             }
 
-            if (in_array($mode, ['insert', 'update', 'delete'])) {
+            if (in_array($this->query_type,
+                [
+                    self::UPDATE_QUERY,
+                    self::INSERT_QUERY,
+                    self::DELETE_QUERY,
+                ])) {
                 $this->affected_rows = pg_affected_rows($rs);
             }
         }
 
         $this->restoreErrorHandler();
-    }
-
-    /**
-     * Create SQL.
-     *
-     * @param $stmt
-     * @param $bind_params
-     * @param $options
-     *
-     * @throws Exception
-     */
-    private function _create_sql($stmt, $bind_params, $options)
-    {
-        // options -------------------------------------------------------------
-        $defaults = [
-            'sql_placeholder'         => $this->sql_placeholder,
-            'use_pst'                 => $this->use_pst,
-            'pst_placeholder'         => $this->pst_placeholder,
-            'use_prepared_statements' => null,
-        ];
-
-        $opt = array_merge($defaults, $options);
-
-        $sql_placeholder = $opt['sql_placeholder'];
-        $use_pst         = $opt['use_pst'];
-        $pst_placeholder = $opt['pst_placeholder'];
-        if ('auto' == $pst_placeholder) {
-            $a_pst_placeholder = $this->a_pst_placeholder;
-            $pst_placeholder   = $a_pst_placeholder[$this->rdbms];
-        }
-        $use_prepared_statements = $opt['use_prepared_statements'];
-
-        $this->sql = null;
-
-        $a_stmt = explode($sql_placeholder, $stmt);
-
-        $count_params_st = count($a_stmt) - 1;
-        $count_params    = count($bind_params);
-        if ($count_params_st != $count_params) {
-            $message = sprintf('Number of variables (%u) does not match number of parameters in statement (%u)',
-                $count_params, $count_params_st);
-            //throw new Exception($message);
-        }
-
-        $sql = '';
-        if ($use_prepared_statements) {
-            if ('question_mark' == $pst_placeholder) {
-                $sql = implode('?', $a_stmt);
-            } elseif ('numbered' == $pst_placeholder) {
-                foreach ($a_stmt as $key => $part) {
-                    $idx = $key + 1;
-                    $sql .= $part . ($key < $count_params ? '$' . $idx : '');
-                }
-            }
-        } else {
-            foreach ($a_stmt as $key => $part) {
-                $param = '';
-                if ($key < $count_params) {
-                    $param = $bind_params[$key];
-                    if (null === $bind_params[$key]) {
-                        $param = 'NULL';
-                    } else {
-                        if ('string' == gettype($bind_params[$key])) {
-                            $param = $this->qstr($param);
-                        }
-                    }
-                }
-                $sql .= $part . $param;
-            }
-        }
-
-        $this->sql = $sql;
     }
 
     /**
