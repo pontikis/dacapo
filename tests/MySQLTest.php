@@ -496,6 +496,98 @@ final class MySQLTest extends TestCase
         );
     }
 
+    public function testSelect03()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+        $ds->setFetchTypeAssoc();
+        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+        $ds->setFetchTypeNum();
+        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Robertson',
+            $row[0]
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+        $ds->setFetchTypeBoth();
+        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+        $this->assertSame(
+            'Robertson',
+            $row[0]
+        );
+    }
+
+    public function testSelect03el()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+        $ds->setFetchTypeAssoc();
+        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Γεωργίου',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+        $ds->setFetchTypeNum();
+        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Γεωργίου',
+            $row[0]
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+        $ds->setFetchTypeBoth();
+        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Γεωργίου',
+            $row['lastname']
+        );
+        $this->assertSame(
+            'Γεωργίου',
+            $row[0]
+        );
+    }
+
     public function testSelectFails01()
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
