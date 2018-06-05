@@ -45,19 +45,15 @@ final class PostgresqlTest extends TestCase
 
     ////////////////////////////////////////////////////////////////////
     // Basic setup - it runs once in Class                            //
-    //                                                                //
-    // With localhost port is ignored. Use 127.0.0.1 instead          //
     ////////////////////////////////////////////////////////////////////
     public static function setUpBeforeClass()
     {
         self::$db_with_server_name = [
-            'rdbms'           => 'POSTGRES',
-            'db_server'       => $GLOBALS['POSTGRES_SERVER_NAME'],
-            'db_user'         => $GLOBALS['POSTGRES_USER'],
-            'db_passwd'       => $GLOBALS['POSTGRES_PASSWD'],
-            'db_name'         => $GLOBALS['POSTGRES_DBNAME'],
-            // optional
-            //'charset'         => $GLOBALS['POSTGRES_CHARSET'],
+            'rdbms'     => 'POSTGRES',
+            'db_server' => $GLOBALS['POSTGRES_SERVER_NAME'],
+            'db_user'   => $GLOBALS['POSTGRES_USER'],
+            'db_passwd' => $GLOBALS['POSTGRES_PASSWD'],
+            'db_name'   => $GLOBALS['POSTGRES_DBNAME'],
         ];
 
         self::$db_with_server_ip              = self::$db_with_server_name;
@@ -90,15 +86,11 @@ final class PostgresqlTest extends TestCase
         self::$db_wrong_dbname_with_server_ip            = self::$db_with_server_ip;
         self::$db_wrong_dbname_with_server_ip['db_name'] = $GLOBALS['POSTGRES_DBNAME_WRONG'];
 
-        self::$db_wrong_port_with_server_name            = self::$db_with_server_name;
+        self::$db_wrong_port_with_server_name = self::$db_with_server_name;
+        self::$db_wrong_port_with_server_ip   = self::$db_with_server_ip;
 
-        self::$db_wrong_port_with_server_ip            = self::$db_with_server_ip;
-
-        self::$db_wrong_charset_with_server_name            = self::$db_with_server_name;
-        self::$db_wrong_charset_with_server_name['charset'] = $GLOBALS['POSTGRES_CHARSET_WRONG'];
-
-        self::$db_wrong_charset_with_server_ip            = self::$db_with_server_ip;
-        self::$db_wrong_charset_with_server_ip['charset'] = $GLOBALS['POSTGRES_CHARSET_WRONG'];
+        self::$db_wrong_charset_with_server_name = self::$db_with_server_name;
+        self::$db_wrong_charset_with_server_ip   = self::$db_with_server_ip;
 
         self::$mc = [
             'mc_pool'       => [
@@ -320,7 +312,7 @@ final class PostgresqlTest extends TestCase
     public function testConnectFails09a()
     {
         $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
-        $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);        
+        $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -329,7 +321,7 @@ final class PostgresqlTest extends TestCase
     public function testConnectFails10()
     {
         $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
-        $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);        
+        $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
@@ -337,7 +329,7 @@ final class PostgresqlTest extends TestCase
     public function testConnectFails10a()
     {
         $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
-        $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);        
+        $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -350,6 +342,17 @@ final class PostgresqlTest extends TestCase
     {
         $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
         $sql           = 'SELECT * FROM test.customers_en';
+        $bind_params   = [];
+        $query_options = [];
+        $res           = $ds->select($sql, $bind_params, $query_options);
+        $this->assertSame(
+            100,
+            $ds->getNumRows()
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
+        $sql           = 'SELECT * FROM customers_en';
         $bind_params   = [];
         $query_options = [];
         $res           = $ds->select($sql, $bind_params, $query_options);
@@ -371,7 +374,8 @@ final class PostgresqlTest extends TestCase
             $ds->getNumRows()
         );
 
-/*        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql           = 'SELECT * FROM customers_el';
         $bind_params   = [];
         $query_options = [];
@@ -379,7 +383,59 @@ final class PostgresqlTest extends TestCase
         $this->assertSame(
             105,
             $ds->getNumRows()
-        );*/
+        );
+    }
+
+    public function testSelect02()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $sql           = 'SELECT lastname FROM test.customers_en WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
+        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+    }
+
+    public function testSelect02el()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $sql           = 'SELECT lastname FROM test.customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Γεωργίου',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
+        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Γεωργίου',
+            $row['lastname']
+        );
     }
 
     public function testSelectFails01()

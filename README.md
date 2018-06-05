@@ -260,6 +260,11 @@ However, use of preapared statements is strongly recommended in all cases.
 PHPUnit
 -------
 
+Tests performed in Debian 9 Linux server with 
+* php 7
+* MariaDB Ver 15.1 Distrib 10.1.26-MariaDB
+* Postgres 9.6.7
+
 ### MySQL tests
 
 ```

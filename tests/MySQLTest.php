@@ -47,13 +47,11 @@ final class MySQLTest extends TestCase
     public static function setUpBeforeClass()
     {
         self::$db_with_server_name = [
-            'rdbms'           => 'MYSQLi',
-            'db_server'       => $GLOBALS['MYSQL_SERVER_NAME'],
-            'db_user'         => $GLOBALS['MYSQL_USER'],
-            'db_passwd'       => $GLOBALS['MYSQL_PASSWD'],
-            'db_name'         => $GLOBALS['MYSQL_DBNAME'],
-            // optional
-            //'charset'         => $GLOBALS['MYSQL_CHARSET'],
+            'rdbms'     => 'MYSQLi',
+            'db_server' => $GLOBALS['MYSQL_SERVER_NAME'],
+            'db_user'   => $GLOBALS['MYSQL_USER'],
+            'db_passwd' => $GLOBALS['MYSQL_PASSWD'],
+            'db_name'   => $GLOBALS['MYSQL_DBNAME'],
         ];
 
         self::$db_with_server_ip              = self::$db_with_server_name;
@@ -85,16 +83,6 @@ final class MySQLTest extends TestCase
 
         self::$db_wrong_dbname_with_server_ip            = self::$db_with_server_ip;
         self::$db_wrong_dbname_with_server_ip['db_name'] = $GLOBALS['MYSQL_DBNAME_WRONG'];
-
-        self::$db_wrong_port_with_server_name            = self::$db_with_server_name;
-
-        self::$db_wrong_port_with_server_ip            = self::$db_with_server_ip;
-
-        self::$db_wrong_charset_with_server_name            = self::$db_with_server_name;
-        self::$db_wrong_charset_with_server_name['charset'] = $GLOBALS['MYSQL_CHARSET_WRONG'];
-
-        self::$db_wrong_charset_with_server_ip            = self::$db_with_server_ip;
-        self::$db_wrong_charset_with_server_ip['charset'] = $GLOBALS['MYSQL_CHARSET_WRONG'];
 
         self::$mc = [
             'mc_pool'       => [
@@ -154,11 +142,63 @@ final class MySQLTest extends TestCase
             mysqli::class,
             $ds->dbConnect()
         );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT']);
+
+        $this->assertInstanceOf(
+            Dacapo::class,
+            $ds
+        );
+
+        $this->assertInstanceOf(
+            mysqli::class,
+            $ds->dbConnect()
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+
+        $this->assertInstanceOf(
+            Dacapo::class,
+            $ds
+        );
+
+        $this->assertInstanceOf(
+            mysqli::class,
+            $ds->dbConnect()
+        );
     }
 
     public function testConnect02()
     {
         $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+
+        $this->assertInstanceOf(
+            Dacapo::class,
+            $ds
+        );
+
+        $this->assertInstanceOf(
+            mysqli::class,
+            $ds->dbConnect()
+        );
+
+        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT']);
+
+        $this->assertInstanceOf(
+            Dacapo::class,
+            $ds
+        );
+
+        $this->assertInstanceOf(
+            mysqli::class,
+            $ds->dbConnect()
+        );
+
+        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
 
         $this->assertInstanceOf(
             Dacapo::class,
@@ -321,7 +361,7 @@ final class MySQLTest extends TestCase
             );
         }
 
-        $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
         $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
@@ -335,8 +375,8 @@ final class MySQLTest extends TestCase
             );
         }
 
-        $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
-        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);        
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -344,16 +384,16 @@ final class MySQLTest extends TestCase
 
     public function testConnectFails10()
     {
-        $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
-        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);        
+        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails10a()
     {
-        $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
-        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);        
+        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -368,7 +408,7 @@ final class MySQLTest extends TestCase
         $sql           = 'SELECT * FROM customers_en';
         $bind_params   = [];
         $query_options = [];
-        $res           = $ds->select($sql, $bind_params, $query_options);
+        $ds->select($sql, $bind_params, $query_options);
         $this->assertSame(
             100,
             $ds->getNumRows()
@@ -381,10 +421,86 @@ final class MySQLTest extends TestCase
         $sql           = 'SELECT * FROM customers_el';
         $bind_params   = [];
         $query_options = [];
-        $res           = $ds->select($sql, $bind_params, $query_options);
+        $ds->select($sql, $bind_params, $query_options);
         $this->assertSame(
             105,
             $ds->getNumRows()
+        );
+    }
+
+    public function testSelect02()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET_WRONG']);
+        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+    }
+
+    public function testSelect02el()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Γεωργίου',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Γεωργίου',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET_WRONG']);
+        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertNotEquals(
+            'Γεωργίου',
+            $row['lastname']
         );
     }
 
@@ -395,7 +511,7 @@ final class MySQLTest extends TestCase
         $bind_params   = [];
         $query_options = [];
         $this->expectException(DacapoErrorException::class);
-        $res = $ds->select($sql, $bind_params, $query_options);
+        $ds->select($sql, $bind_params, $query_options);
     }
 
     public function testSelectFails01a()
@@ -406,6 +522,6 @@ final class MySQLTest extends TestCase
         $bind_params   = [];
         $query_options = [];
         $this->expectException(Warning::class);
-        $res = $ds->select($sql, $bind_params, $query_options);
+        $ds->select($sql, $bind_params, $query_options);
     }
 }

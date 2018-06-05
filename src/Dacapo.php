@@ -45,9 +45,9 @@ class Dacapo
     private $db_passwd;
     private $db_name;
 
+    // optional
     private $db_port;
     private $charset;
-
     private $pg_connect_force_new;
     private $pg_connect_timeout;
 
@@ -144,12 +144,12 @@ class Dacapo
 
         // optional connection params
         $this->db_port              = null;
-        $this->charset              = array_key_exists('charset', $a_db) ? $a_db['charset'] : null;
+        $this->charset              = null;
         $this->pg_connect_timeout   = null;
         $this->pg_connect_force_new = false;
 
         // query params --------------------------------------------------------
-        $this->db_schema       = array_key_exists('db_schema', $a_db) ? $a_db['db_schema'] : null;
+        $this->db_schema       = null;
         $this->use_pst         = array_key_exists('use_pst', $a_db) ? $a_db['use_pst'] : false;
         $this->pst_placeholder = array_key_exists('pst_placeholder', $a_db) ? $a_db['pst_placeholder'] : 'auto';
 
@@ -225,6 +225,18 @@ class Dacapo
         return $this;
     }
 
+    public function getCharset()
+    {
+        return $this->charset;
+    }
+
+    public function setCharset(string $charset)
+    {
+        $this->charset = $charset;
+
+        return $this;
+    }
+
     public function getPgConnectForceNew()
     {
         return $this->pg_connect_force_new;
@@ -250,6 +262,17 @@ class Dacapo
     }
 
     // query -------------------------------------------------------------------
+    public function getDbSchema()
+    {
+        return $this->db_schema;
+    }
+
+    public function setDbSchema(string $schema)
+    {
+        $this->db_schema = $schema;
+
+        return $this;
+    }
 
     /**
      * Get data returned from a select query.
@@ -297,16 +320,6 @@ class Dacapo
     public function getSqlPlaceholder()
     {
         return $this->sql_placeholder;
-    }
-
-    /**
-     * Set database schema.
-     *
-     * @param string $schema
-     */
-    public function setDbSchema($schema)
-    {
-        $this->db_schema = $schema;
     }
 
     /**
