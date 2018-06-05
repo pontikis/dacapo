@@ -388,7 +388,7 @@ final class PostgresqlTest extends TestCase
         );
 
         $ds = new Dacapo(self::$db_with_server_name, self::$mc);
-        $ds->setPgConnectForceNew(true);        
+        $ds->setPgConnectForceNew(true);
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql           = 'SELECT * FROM customers_en';
         $bind_params   = [];
