@@ -31,14 +31,6 @@ final class MySQLTest extends TestCase
 
     protected static $db_wrong_dbname_with_server_ip;
 
-    protected static $db_wrong_port_with_server_name;
-
-    protected static $db_wrong_port_with_server_ip;
-
-    protected static $db_wrong_charset_with_server_name;
-
-    protected static $db_wrong_charset_with_server_ip;
-
     protected static $mc;
 
     ////////////////////////////////////////////////////////////////////

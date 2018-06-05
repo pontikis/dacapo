@@ -237,6 +237,13 @@ class Dacapo
         return $this;
     }
 
+    public function reSetCharset()
+    {
+        $this->charset = null;
+
+        return $this;
+    }
+
     public function getPgConnectForceNew()
     {
         return $this->pg_connect_force_new;
@@ -435,16 +442,22 @@ class Dacapo
     /**
      * Disconnect database (if connection has been established).
      */
-    public function db_disconnect()
+    public function dbDisconnect()
     {
         $conn = $this->conn;
+
         if (null !== $conn) {
+            $this->applyDacapoErrorHandler();
+
             if ('MYSQLi' === $this->rdbms) {
                 $conn->close();
             }
+
             if ('POSTGRES' === $this->rdbms) {
                 pg_close($conn);
             }
+
+            $this->restoreErrorHandler();
         }
     }
 

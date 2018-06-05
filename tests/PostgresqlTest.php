@@ -31,17 +31,7 @@ final class PostgresqlTest extends TestCase
 
     protected static $db_wrong_dbname_with_server_ip;
 
-    protected static $db_wrong_port_with_server_name;
-
-    protected static $db_wrong_port_with_server_ip;
-
-    protected static $db_wrong_charset_with_server_name;
-
-    protected static $db_wrong_charset_with_server_ip;
-
     protected static $mc;
-
-    protected static $regex_not_dacapo;
 
     ////////////////////////////////////////////////////////////////////
     // Basic setup - it runs once in Class                            //
@@ -85,12 +75,6 @@ final class PostgresqlTest extends TestCase
 
         self::$db_wrong_dbname_with_server_ip            = self::$db_with_server_ip;
         self::$db_wrong_dbname_with_server_ip['db_name'] = $GLOBALS['POSTGRES_DBNAME_WRONG'];
-
-        self::$db_wrong_port_with_server_name = self::$db_with_server_name;
-        self::$db_wrong_port_with_server_ip   = self::$db_with_server_ip;
-
-        self::$db_wrong_charset_with_server_name = self::$db_with_server_name;
-        self::$db_wrong_charset_with_server_ip   = self::$db_with_server_ip;
 
         self::$mc = [
             'mc_pool'       => [
@@ -150,11 +134,63 @@ final class PostgresqlTest extends TestCase
             'pgsql link',
             get_resource_type($ds->dbConnect())
         );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT']);
+
+        $this->assertInstanceOf(
+            Dacapo::class,
+            $ds
+        );
+
+        $this->assertSame(
+            'pgsql link',
+            get_resource_type($ds->dbConnect())
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+
+        $this->assertInstanceOf(
+            Dacapo::class,
+            $ds
+        );
+
+        $this->assertSame(
+            'pgsql link',
+            get_resource_type($ds->dbConnect())
+        );
     }
 
     public function testConnect02()
     {
         $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+
+        $this->assertInstanceOf(
+            Dacapo::class,
+            $ds
+        );
+
+        $this->assertSame(
+            'pgsql link',
+            get_resource_type($ds->dbConnect())
+        );
+
+        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT']);
+
+        $this->assertInstanceOf(
+            Dacapo::class,
+            $ds
+        );
+
+        $this->assertSame(
+            'pgsql link',
+            get_resource_type($ds->dbConnect())
+        );
+
+        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
 
         $this->assertInstanceOf(
             Dacapo::class,
@@ -303,7 +339,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails09()
     {
-        $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
         $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
@@ -311,7 +347,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails09a()
     {
-        $ds = new Dacapo(self::$db_wrong_port_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
         $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
@@ -320,7 +356,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails10()
     {
-        $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
         $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
@@ -328,7 +364,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails10a()
     {
-        $ds = new Dacapo(self::$db_wrong_port_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
         $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
@@ -400,6 +436,31 @@ final class PostgresqlTest extends TestCase
         );
 
         $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
+        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+        $sql           = 'SELECT lastname FROM test.customers_en WHERE id=?';
+        $bind_params   = [1];
+        $query_options = ['get_row' => true];
+        $ds->select($sql, $bind_params, $query_options);
+        $row = $ds->getData();
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+
+        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET_WRONG']);
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
         $bind_params   = [1];
