@@ -35,6 +35,8 @@ class Dacapo
 
     const ERROR_EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
 
+    const DEFAULT_SQL_PLACEHOLDER = '?';
+
     // error handler -----------------------------------------------------------
     private $use_dacapo_error_handler;
 
@@ -51,6 +53,8 @@ class Dacapo
     private $pg_connect_force_new;
     private $pg_connect_timeout;
 
+    private $conn;
+
     // query params ------------------------------------------------------------
     /** @var string Postgres schema */
     private $db_schema;
@@ -65,7 +69,6 @@ class Dacapo
     private $fetch_type;
 
     // ***
-    private $conn;
     private $sql;
 
     /** @var array data returned */
@@ -120,6 +123,8 @@ class Dacapo
             }
         }
 
+        $this->conn = null;
+
         $this->db_server = array_key_exists('db_server', $a_db) ? $a_db['db_server'] : null;
         $this->db_name   = array_key_exists('db_name', $a_db) ? $a_db['db_name'] : null;
         $this->db_user   = array_key_exists('db_user', $a_db) ? $a_db['db_user'] : null;
@@ -149,6 +154,7 @@ class Dacapo
 
         // query params --------------------------------------------------------
         $this->db_schema       = null;
+
         $this->use_pst         = array_key_exists('use_pst', $a_db) ? $a_db['use_pst'] : false;
         $this->pst_placeholder = array_key_exists('pst_placeholder', $a_db) ? $a_db['pst_placeholder'] : 'auto';
 
@@ -156,7 +162,6 @@ class Dacapo
 
         $this->fetch_type = array_key_exists('fetch_type', $a_db) ? $a_db['fetch_type'] : 'ASSOC';
 
-        $this->conn          = null;
         $this->sql           = null;
         $this->data          = null;
         $this->num_rows      = null;
@@ -193,6 +198,7 @@ class Dacapo
             'NULL'    => 's', // do not need to cast null to a particular data type
         ];
 
+        // memcached params ----------------------------------------------------
         $this->mc_settings = $a_mc;
         $this->mc          = null;
     }
@@ -325,22 +331,6 @@ class Dacapo
     public function getSqlPlaceholder()
     {
         return $this->sql_placeholder;
-    }
-
-    /**
-     * Set db connection.
-     *
-     * It might be useful only to MySQLi.
-     *
-     * Concerning Postgres (http://php.net/pg_connect): If a second call is made to pg_connect()
-     * with the same connection_string as an existing connection,
-     * the existing connection will be returned unless you pass PGSQL_CONNECT_FORCE_NEW as connect_type.
-     *
-     * @param $conn
-     */
-    public function set_conn($conn)
-    {
-        $this->conn = $conn;
     }
 
     // MAIN FUNCTIONS ----------------------------------------------------------
