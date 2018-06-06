@@ -806,6 +806,7 @@ class Dacapo
      * Error handler function. Replaces PHP's error handler.
      * The only reason to use this error_handler is to convert php errors (usually E_WARNING)
      * from mysqli and pgsql php extension.
+     * (another way for MYSQLi could be: mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);)
      * Some errors of type E_USER_WARNING are triggered from this class.
      * If your own error_handler already converts E_WARNING (and E_USER_WARNING) to ErrorException you don't need it.
      * In this case use setUseDacapoErrorHandler(false).
@@ -887,15 +888,22 @@ class Dacapo
                 self::INSERT_QUERY,
                 self::DELETE_QUERY,
             ])) {
-            trigger_error(self::ERROR_UNSUPPORTED_QUERY, E_WARNING);
+            trigger_error(self::ERROR_UNSUPPORTED_QUERY, E_USER_WARNING);
+        }
+
+        $a_stmt                 = explode($this->sql_placeholder, $sql);
+        $statement_params_count = count($a_stmt) - 1;
+
+        if ($statement_params_count !== $bind_params_count) {
+            $message = sprintf('Number of variables (%u) does not match number of parameters in statement (%u)',
+                $bind_params_count, $statement_params_count);
+            trigger_error($message, E_USER_WARNING);
         }
 
         // get database connection ---------------------------------------------
         $conn = $this->dbConnect();
 
         // construct sql -------------------------------------------------------
-        $a_stmt = explode($this->sql_placeholder, $sql);
-
         switch ($this->pst_placeholder) {
             case self::PREPARED_STATEMENTS_QUESTION_MARK:
                 $this->sql = implode('?', $a_stmt);
@@ -909,6 +917,7 @@ class Dacapo
                 break;
         }
 
+        // query ---------------------------------------------------------------
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
                 // USE database
