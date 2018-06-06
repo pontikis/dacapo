@@ -604,7 +604,7 @@ class Dacapo
                 pg_query($conn, 'BEGIN');
                 break;
         }
-        
+
         $this->restoreErrorHandler();
     }
 
@@ -614,7 +614,7 @@ class Dacapo
     public function commitTrans()
     {
         $conn = $this->dbConnect();
-        
+
         $this->applyDacapoErrorHandler();
 
         switch ($this->rdbms) {
@@ -627,7 +627,7 @@ class Dacapo
                 break;
         }
 
-        $this->restoreErrorHandler();        
+        $this->restoreErrorHandler();
     }
 
     /**
@@ -636,7 +636,7 @@ class Dacapo
     public function rollbackTrans()
     {
         $conn = $this->dbConnect();
-        
+
         $this->applyDacapoErrorHandler();
 
         switch ($this->rdbms) {
@@ -649,7 +649,7 @@ class Dacapo
                 break;
         }
 
-        $this->restoreErrorHandler();        
+        $this->restoreErrorHandler();
     }
 
     /**
@@ -665,7 +665,7 @@ class Dacapo
     {
         // get database connection ---------------------------------------------
         $conn = $this->dbConnect();
-        
+
         $this->applyDacapoErrorHandler();
 
         switch ($this->rdbms) {
@@ -676,8 +676,8 @@ class Dacapo
                 pg_query($conn, $sql);
                 break;
         }
-        
-        $this->restoreErrorHandler();           
+
+        $this->restoreErrorHandler();
     }
 
     /**
@@ -806,7 +806,8 @@ class Dacapo
      * Error handler function. Replaces PHP's error handler.
      * The only reason to use this error_handler is to convert php errors (usually E_WARNING)
      * from mysqli and pgsql php extension.
-     * If your own error_handler already converts E_WARNING to ErrorException you don't need it
+     * Some errors of type E_USER_WARNING are triggered from this class.
+     * If your own error_handler already converts E_WARNING (and E_USER_WARNING) to ErrorException you don't need it.
      * In this case use setUseDacapoErrorHandler(false).
      *
      * @param int    $err_no
@@ -916,7 +917,7 @@ class Dacapo
                 // Prepare statement
                 $stmt = $conn->prepare($this->sql);
                 if (false === $stmt) {
-                    trigger_error($conn->error, E_WARNING);
+                    trigger_error($conn->error, E_USER_WARNING);
                 }
 
                 if ($bind_params_count > 0) {
@@ -960,7 +961,7 @@ class Dacapo
                         if (1 === count($a_data)) {
                             $this->data = $a_data[0];
                         } else {
-                            trigger_error(self::ERROR_FETCH_ROW_INVALID, E_WARNING);
+                            trigger_error(self::ERROR_FETCH_ROW_INVALID, E_USER_WARNING);
                         }
                     }
                 }
@@ -1003,7 +1004,7 @@ class Dacapo
                         if (1 === count($a_data)) {
                             $this->data = $a_data[0];
                         } else {
-                            trigger_error(self::ERROR_FETCH_ROW_INVALID, E_WARNING);
+                            trigger_error(self::ERROR_FETCH_ROW_INVALID, E_USER_WARNING);
                         }
                     }
                 }

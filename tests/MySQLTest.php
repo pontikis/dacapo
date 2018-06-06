@@ -604,4 +604,61 @@ final class MySQLTest extends TestCase
         $this->expectException(Warning::class);
         $ds->select($sql, $bind_params);
     }
+
+    public function testSelectFails02()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $sql           = 'SELECT * FROM customers_en WHERE wrong_column=?';
+        $bind_params   = [1];
+        $this->expectException(DacapoErrorException::class);
+        $ds->select($sql, $bind_params);
+    }
+
+    public function testSelectFails02a()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $sql           = 'SELECT * FROM customers_en WHERE wrong_column=?';
+        $bind_params   = [1];
+        $this->expectException(Warning::class);
+        $ds->select($sql, $bind_params);
+    }
+
+    public function testSelectFails03()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $sql           = 'SELECT * FROM customers_en WHERE id=?';
+        $bind_params   = [1, 2];
+        $this->expectException(DacapoErrorException::class);
+        $ds->select($sql, $bind_params);
+    }
+
+    public function testSelectFails03a()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $sql           = 'SELECT * FROM customers_en WHERE id=?';
+        $bind_params   = [1, 2];
+        $this->expectException(Warning::class);
+        $ds->select($sql, $bind_params);
+    }
+
+    public function testSelectFails04()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $sql           = 'SELECT * FROM customers_en WHERE id=? AND lastname=?';
+        $bind_params   = [1];
+        $this->expectException(DacapoErrorException::class);
+        $ds->select($sql, $bind_params);
+    }
+
+    public function testSelectFails04a()
+    {
+        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds->setUseDacapoErrorHandler(false);
+        $sql           = 'SELECT * FROM customers_en WHERE id=? AND lastname=?';
+        $bind_params   = [1];
+        $this->expectException(Warning::class);
+        $ds->select($sql, $bind_params);
+    }
 }
