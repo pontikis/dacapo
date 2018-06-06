@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['limit',['limit',['../classdacapo.html#adf3dcc7b5582acc20a61e114fad52a7f',1,'dacapo']]],
-  ['lower',['lower',['../classdacapo.html#a385c0e71e5e1416393faec7e56b2189c',1,'dacapo']]]
+  ['insert',['insert',['../class_pontikis_1_1_database_1_1_dacapo.html#a8c1195ef63f1b57098d25332ad9d14fa',1,'Pontikis::Database::Dacapo']]]
 ];

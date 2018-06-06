@@ -1,0 +1,6 @@
+<map id="delete" name="delete">
+<area shape="rect" id="node2" href="$class_pontikis_1_1_database_1_1_dacapo.html#a42732f1b744a160294bee938ef1576db" title="dacapoQuery" alt="" coords="111,31,209,57"/>
+<area shape="rect" id="node3" href="$class_pontikis_1_1_database_1_1_dacapo.html#a955b109f37b077409373fc62e6c58f99" title="applyDacapoErrorHandler" alt="" coords="391,5,561,32"/>
+<area shape="rect" id="node4" href="$class_pontikis_1_1_database_1_1_dacapo.html#a81a366428179a1f1020ce9438a27c51f" title="dbConnect" alt="" coords="257,31,343,57"/>
+<area shape="rect" id="node5" href="$class_pontikis_1_1_database_1_1_dacapo.html#a0ba562955e695e1f343bf4551a882cb5" title="restoreErrorHandler" alt="" coords="409,68,543,95"/>
+</map>

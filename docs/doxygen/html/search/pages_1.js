@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['dacapo',['dacapo',['../index.html',1,'']]]
+  ['dacapo',['Dacapo',['../index.html',1,'']]]
 ];
