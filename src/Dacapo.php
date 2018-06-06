@@ -33,6 +33,8 @@ class Dacapo
     const INSERT_QUERY = 'insert';
     const DELETE_QUERY = 'delete';
 
+    const PG_SEQUENCE_NAME_AUTO = 'auto';
+
     const PREPARED_STATEMENTS_QUESTION_MARK = 'question_mark';
     const PREPARED_STATEMENTS_NUMBERED      = 'numbered';
 
@@ -49,6 +51,7 @@ class Dacapo
     const ERROR_DBPASSWD_IS_REQUIRED = 'Database password is required';
 
     const ERROR_UNSUPPORTED_QUERY = 'Unsupported query type';
+    const ERROR_FETCH_ROW_INVALID = 'Query does not return one row';
 
     // error handler -----------------------------------------------------------
     private $use_dacapo_error_handler;
@@ -77,12 +80,12 @@ class Dacapo
     private $sql_placeholder;
     /** @var array types of params to bind with MYSQLi */
     private $pst_placeholder;
-    /** @var string variables placeholder in SQL statements */
-    private $a_types;
     /** @var int fetch type in various RDBMS: ASSOC, NUM, BOTH */
     private $fetch_type;
-    /** @var string the current sql statement for supported query types */
+    /** @var string the current sql statement for supported query types - default is ASSOC */
     private $sql;
+    /** @var string variables placeholder in SQL statements */
+    private $a_types;
     /** @var array|null data returned */
     private $data;
     /** @var int number of rows returned */
@@ -91,7 +94,7 @@ class Dacapo
     private $fetch_row;
     /** @var int last inserted id */
     private $insert_id;
-    /** @var string the name of the Postgres sequence in INSERT statement (with default null, the name is constructed automatically) */
+    /** @var string Postgres sequence in INSERT statement (default is 'auto' seq name will be created as tableName_seq_id, null means that there is NO sequence for this table, otherwise the provided name will be used) */
     private $pg_insert_sequence;
     /** @var int number of affected rows in UPDATE, INSERT, DELETE statements */
     private $affected_rows;
@@ -169,11 +172,9 @@ class Dacapo
         $this->pg_connect_force_new = false;
 
         // query params --------------------------------------------------------
+        $this->query_type      = null;
+        $this->db_schema       = null;
         $this->sql_placeholder = self::DEFAULT_SQL_PLACEHOLDER;
-
-        $this->db_schema = null;
-
-        $this->query_type = null;
 
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
@@ -186,11 +187,7 @@ class Dacapo
                 break;
         }
 
-        $this->sql           = null;
-        $this->data          = null;
-        $this->num_rows      = null;
-        $this->insert_id     = null;
-        $this->affected_rows = null;
+        $this->sql = null;
 
         // Bind parameters. Types: s = string, i = integer, d = double,  b = blob
         $this->a_types = [
@@ -200,6 +197,13 @@ class Dacapo
             'boolean' => 'i', // avoid boolean in params, use integer instead (1,0)
             'NULL'    => 's', // do not need to cast null to a particular data type
         ];
+
+        $this->data               = null;
+        $this->num_rows           = null;
+        $this->fetch_row          = false;
+        $this->insert_id          = null;
+        $this->affected_rows      = null;
+        $this->pg_insert_sequence = self::PG_SEQUENCE_NAME_AUTO;
 
         // memcached params ----------------------------------------------------
         $this->mc_settings = $a_mc;
@@ -269,12 +273,18 @@ class Dacapo
     }
 
     // query -------------------------------------------------------------------
+    public function getDbSchema()
+    {
+        return $this->db_schema;
+    }
 
-    /**
-     * Get the symbol used for SQL placeholder.
-     *
-     * @return string
-     */
+    public function setDbSchema(string $schema)
+    {
+        $this->db_schema = $schema;
+
+        return $this;
+    }
+
     public function getSqlPlaceholder()
     {
         return $this->sql_placeholder;
@@ -334,20 +344,13 @@ class Dacapo
         return $this;
     }
 
-    public function getDbSchema()
+    public function getSQL()
     {
-        return $this->db_schema;
-    }
-
-    public function setDbSchema(string $schema)
-    {
-        $this->db_schema = $schema;
-
-        return $this;
+        return $this->sql;
     }
 
     /**
-     * Get data returned from a select query.
+     * Get data returned from a SELECT query.
      *
      * @return array|null
      */
@@ -357,11 +360,23 @@ class Dacapo
     }
 
     /**
-     * Get returned rows count.
+     * Get returned rows count from a SELECT query.
      */
     public function getNumRows()
     {
         return $this->num_rows;
+    }
+
+    public function getFetchRow(): bool
+    {
+        return $this->fetch_row;
+    }
+
+    public function setFetchRow(bool $flag)
+    {
+        $this->fetch_row = $flag;
+
+        return $this;
     }
 
     /**
@@ -375,13 +390,31 @@ class Dacapo
     }
 
     /**
-     * Get affected rows count.
+     * Get affected rows count (UPDATE, INSERT, DELETE query).
      *
      * @return int|null
      */
     public function getAffectedRows()
     {
         return $this->affected_rows;
+    }
+
+    public function getPgInsertSequence()
+    {
+        return $this->pg_insert_sequence;
+    }
+
+    /**
+     * Postgres sequence in INSERT statement (default is 'auto' seq name will be created as tableName_seq_id, null
+     * means that there is NO sequence for this table, otherwise the provided name will be used.
+     *
+     * @param string|null $seq_name
+     */
+    public function setPgInsertSequence($seq_name)
+    {
+        $this->pg_insert_sequence = $seq_name;
+
+        return $this;
     }
 
     /**
@@ -489,16 +522,14 @@ class Dacapo
      *
      * @param string $sql
      * @param array  $bind_params
-     * @param array  $options
      *
      * @return bool (true on success)
      */
     public function select(
         string $sql,
-        array $bind_params = [],
-        array $options = []
+        array $bind_params = []
     ) {
-        $this->dacapoQuery($sql, $bind_params, $options);
+        $this->dacapoQuery($sql, $bind_params);
     }
 
     /**
@@ -509,16 +540,14 @@ class Dacapo
      *
      * @param string $sql
      * @param array  $bind_params
-     * @param array  $options
      *
      * @return bool (true on success)
      */
     public function insert(
         string $sql,
-        array $bind_params = [],
-        array $options = []
+        array $bind_params = []
     ) {
-        $this->dacapoQuery($sql, $bind_params, $options);
+        $this->dacapoQuery($sql, $bind_params);
     }
 
     /**
@@ -534,10 +563,9 @@ class Dacapo
      */
     public function update(
         string $sql,
-        array $bind_params = [],
-        array $options = []
+        array $bind_params = []
     ) {
-        $this->dacapoQuery($sql, $bind_params, $options);
+        $this->dacapoQuery($sql, $bind_params);
     }
 
     /**
@@ -553,10 +581,9 @@ class Dacapo
      */
     public function delete(
         string $sql,
-        array $bind_params = [],
-        array $options = []
+        array $bind_params = []
     ) {
-        $this->dacapoQuery($sql, $bind_params, $options);
+        $this->dacapoQuery($sql, $bind_params);
     }
 
     /**
@@ -813,24 +840,30 @@ class Dacapo
     }
 
     /**
-     * @param $sql
-     * @param array $bind_params
-     * @param array $options
+     * @param string $sql
+     * @param array  $bind_params
      *
      * @return bool
      */
     private function dacapoQuery(
         string $sql,
-        array $bind_params = [],
-        array $options = [])
-    {
+        array $bind_params = []
+    ) {
         $this->applyDacapoErrorHandler();
+
+        $this->sql           = null;
+        $this->data          = null;
+        $this->num_rows      = null;
+        $this->insert_id     = null;
+        $this->affected_rows = null;
+        $a_data              = [];
+
+        // get bind params count
+        $bind_params_count = count($bind_params);
 
         // get query type
         $a_sql            = explode(' ', trim($sql));
         $this->query_type = strtolower($a_sql[0]);
-
-        $bind_params_count = count($bind_params);
 
         if (!in_array($this->query_type,
             [
@@ -841,15 +874,6 @@ class Dacapo
             ])) {
             trigger_error(self::ERROR_UNSUPPORTED_QUERY, E_WARNING);
         }
-
-        $get_row  = array_key_exists('get_row', $options) ? $options['get_row'] : false;
-        $sequence = 'auto';
-
-        $this->data          = null;
-        $this->num_rows      = null;
-        $a_data              = [];
-        $this->insert_id     = null;
-        $this->affected_rows = null;
 
         // get database connection ---------------------------------------------
         $conn = $this->dbConnect();
@@ -887,15 +911,14 @@ class Dacapo
                     $a_types  = $this->a_types;
 
                     $param_type = '';
-                    $n          = count($bind_params);
-                    for ($i = 0; $i < $n; ++$i) {
+                    for ($i = 0; $i < $bind_params_count; ++$i) {
                         $param_type .= $a_types[gettype($bind_params[$i])];
                     }
 
                     // with call_user_func_array, array params must be passed by reference
                     $a_params[] = &$param_type;
 
-                    for ($i = 0; $i < $n; ++$i) {
+                    for ($i = 0; $i < $bind_params_count; ++$i) {
                         // with call_user_func_array, array params must be passed by reference
                         $a_params[] = &$bind_params[$i];
                     }
@@ -912,20 +935,20 @@ class Dacapo
                     $this->num_rows = $rs->num_rows;
 
                     while ($row = $rs->fetch_array($this->fetch_type)) {
-                        array_push($a_data, $row);
+                        $a_data[] = $row;
                     }
 
                     // free result
                     $stmt->free_result();
 
                     $this->data = $a_data;
-                    if ($get_row && $a_data) {
-                        $this->data = $a_data[0];
+                    if ($this->fetch_row) {
+                        if (1 === count($a_data)) {
+                            $this->data = $a_data[0];
+                        } else {
+                            trigger_error(self::ERROR_FETCH_ROW_INVALID, E_WARNING);
+                        }
                     }
-                }
-
-                if (self::INSERT_QUERY === $this->query_type) {
-                    $this->insert_id = $stmt->insert_id;
                 }
 
                 if (in_array($this->query_type,
@@ -935,6 +958,10 @@ class Dacapo
                         self::DELETE_QUERY,
                     ])) {
                     $this->affected_rows = $stmt->affected_rows;
+                }
+
+                if (self::INSERT_QUERY === $this->query_type) {
+                    $this->insert_id = $stmt->insert_id;
                 }
 
                 // Close statement
@@ -958,23 +985,12 @@ class Dacapo
                     }
 
                     $this->data = $a_data;
-                    if ($get_row && $a_data) {
-                        $this->data = $a_data[0];
-                    }
-                }
-
-                if (self::INSERT_QUERY === $this->query_type) {
-                    // get last inserted value of serial column
-                    if ($sequence) {
-                        if ('auto' == $sequence) {
-                            $table_name    = $a_sql[2];
-                            $sequence_name = $table_name . '_id_seq';
+                    if ($this->fetch_row) {
+                        if (1 === count($a_data)) {
+                            $this->data = $a_data[0];
                         } else {
-                            $sequence_name = $sequence;
+                            trigger_error(self::ERROR_FETCH_ROW_INVALID, E_WARNING);
                         }
-                        $sql_serial      = "SELECT currval('$sequence_name')";
-                        $rs_serial       = pg_query($conn, $sql_serial);
-                        $this->insert_id = pg_fetch_result($rs_serial, 0, 0);
                     }
                 }
 
@@ -985,6 +1001,22 @@ class Dacapo
                         self::DELETE_QUERY,
                     ])) {
                     $this->affected_rows = pg_affected_rows($rs);
+                }
+
+                if (self::INSERT_QUERY === $this->query_type) {
+                    if (null !== $this->pg_insert_sequence) {
+                        // get last inserted value of serial column
+                        if (self::PG_SEQUENCE_NAME_AUTO === $this->pg_insert_sequence) {
+                            $table_name    = $a_sql[2];
+                            $sequence_name = $table_name . '_id_seq';
+                        } else {
+                            $sequence_name = $this->pg_insert_sequence;
+                        }
+
+                        $sql_serial      = "SELECT currval('$sequence_name')";
+                        $rs_serial       = pg_query($conn, $sql_serial);
+                        $this->insert_id = pg_fetch_result($rs_serial, 0, 0);
+                    }
                 }
 
                 break;
