@@ -39,7 +39,7 @@ final class PostgresqlTest extends TestCase
     public static function setUpBeforeClass()
     {
         self::$db_with_server_name = [
-            'rdbms'     => 'POSTGRES',
+            'rdbms'     => Dacapo::RDBMS_POSTGRES,
             'db_server' => $GLOBALS['POSTGRES_SERVER_NAME'],
             'db_user'   => $GLOBALS['POSTGRES_USER'],
             'db_passwd' => $GLOBALS['POSTGRES_PASSWD'],

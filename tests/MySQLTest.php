@@ -39,7 +39,7 @@ final class MySQLTest extends TestCase
     public static function setUpBeforeClass()
     {
         self::$db_with_server_name = [
-            'rdbms'     => 'MYSQLi',
+            'rdbms'     => Dacapo::RDBMS_MYSQLI,
             'db_server' => $GLOBALS['MYSQL_SERVER_NAME'],
             'db_user'   => $GLOBALS['MYSQL_USER'],
             'db_passwd' => $GLOBALS['MYSQL_PASSWD'],

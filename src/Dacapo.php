@@ -23,6 +23,21 @@ use Exception;
  */
 class Dacapo
 {
+    const DEFAULT_SQL_PLACEHOLDER = '?';
+
+    const RDBMS_MYSQLI   = 'MYSQLi';
+    const RDBMS_POSTGRES = 'POSTGRES';
+
+    const SELECT_QUERY = 'select';
+    const UPDATE_QUERY = 'update';
+    const INSERT_QUERY = 'insert';
+    const DELETE_QUERY = 'delete';
+
+    const PREPARED_STATEMENTS_QUESTION_MARK = 'question_mark';
+    const PREPARED_STATEMENTS_NUMBERED      = 'numbered';
+
+    const ERROR_EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
+
     const ERROR_RDBMS_NOT_SUPPORTED = 'Database not supported';
     const ERROR_MYSQLI_IS_REQUIRED  = 'mysqli extension is required';
     const ERROR_MYSQLND_IS_REQUIRED = 'mysqlnd extension is required';
@@ -35,19 +50,12 @@ class Dacapo
 
     const ERROR_UNSUPPORTED_QUERY = 'Unsupported query type';
 
-    const ERROR_EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
-
-    const DEFAULT_SQL_PLACEHOLDER = '?';
-
-    const SELECT_QUERY = 'select';
-    const UPDATE_QUERY = 'update';
-    const INSERT_QUERY = 'insert';
-    const DELETE_QUERY = 'delete';
-
     // error handler -----------------------------------------------------------
     private $use_dacapo_error_handler;
 
     // connection params -------------------------------------------------------
+    private $conn;
+
     private $rdbms;
     private $db_server;
     private $db_user;
@@ -60,32 +68,33 @@ class Dacapo
     private $pg_connect_force_new;
     private $pg_connect_timeout;
 
-    private $conn;
-
     // query params ------------------------------------------------------------
+    /** @var string supported types SELECT, UPDATE, INSERT, DELETE */
     private $query_type;
-
     /** @var string Postgres schema */
     private $db_schema;
-
-    private $pst_placeholder;
-
-    /** @var string variables placeholder in SQL statements */
+    /** @var string type of placeholder in prepared statements: one of 'question_mark', 'numbered' */
     private $sql_placeholder;
-
-    private $fetch_type;
-
-    private $sql;
-
-    /** @var array data returned */
-    private $data;
-    private $row;
-    private $num_rows;
-    private $insert_id;
-    private $pg_sequence;
-    private $affected_rows;
-
+    /** @var array types of params to bind with MYSQLi */
+    private $pst_placeholder;
+    /** @var string variables placeholder in SQL statements */
     private $a_types;
+    /** @var int fetch type in various RDBMS: ASSOC, NUM, BOTH */
+    private $fetch_type;
+    /** @var string the current sql statement for supported query types */
+    private $sql;
+    /** @var array|null data returned */
+    private $data;
+    /** @var int number of rows returned */
+    private $num_rows;
+    /** @var bool fetch single row */
+    private $fetch_row;
+    /** @var int last inserted id */
+    private $insert_id;
+    /** @var string the name of the Postgres sequence in INSERT statement (with default null, the name is constructed automatically) */
+    private $pg_insert_sequence;
+    /** @var int number of affected rows in UPDATE, INSERT, DELETE statements */
+    private $affected_rows;
 
     // memcached params --------------------------------------------------------
     private $mc_settings;
@@ -108,23 +117,26 @@ class Dacapo
         $this->rdbms = $a_db['rdbms'];
 
         // RDBMS not supported
-        if (!in_array($this->rdbms, ['MYSQLi', 'POSTGRES'])) {
+        if (false === in_array($this->rdbms, [self::RDBMS_MYSQLI, self::RDBMS_POSTGRES])) {
             throw new Exception(self::ERROR_RDBMS_NOT_SUPPORTED);
         }
 
         // Extension needed
-        if ('MYSQLi' === $this->rdbms) {
-            if (false === extension_loaded('mysqli')) {
-                throw new Exception(self::ERROR_MYSQLI_IS_REQUIRED);
-            }
+        switch ($this->rdbms) {
+            case self::RDBMS_MYSQLI:
+                if (false === extension_loaded('mysqli')) {
+                    throw new Exception(self::ERROR_MYSQLI_IS_REQUIRED);
+                }
 
-            if (false === extension_loaded('mysqlnd')) {
-                throw new Exception(self::ERROR_MYSQLND_IS_REQUIRED);
-            }
-        } elseif ('POSTGRES' === $this->rdbms) {
-            if (false === extension_loaded('pgsql')) {
-                throw new Exception(self::ERROR_PGSQL_IS_REQUIRED);
-            }
+                if (false === extension_loaded('mysqlnd')) {
+                    throw new Exception(self::ERROR_MYSQLND_IS_REQUIRED);
+                }
+                break;
+            case self::RDBMS_POSTGRES:
+                if (false === extension_loaded('pgsql')) {
+                    throw new Exception(self::ERROR_PGSQL_IS_REQUIRED);
+                }
+                break;
         }
 
         $this->conn = null;
@@ -164,12 +176,12 @@ class Dacapo
         $this->query_type = null;
 
         switch ($this->rdbms) {
-            case 'MYSQLi':
-                $this->pst_placeholder = 'question_mark';
+            case self::RDBMS_MYSQLI:
+                $this->pst_placeholder = self::PREPARED_STATEMENTS_QUESTION_MARK;
                 $this->fetch_type      = MYSQLI_ASSOC;
                 break;
-            case 'POSTGRES':
-                $this->pst_placeholder = 'numbered';
+            case self::RDBMS_POSTGRES:
+                $this->pst_placeholder = self::PREPARED_STATEMENTS_NUMBERED;
                 $this->fetch_type      = PGSQL_ASSOC;
                 break;
         }
@@ -283,10 +295,10 @@ class Dacapo
     public function setFetchTypeAssoc()
     {
         switch ($this->rdbms) {
-            case 'MYSQLi':
+            case self::RDBMS_MYSQLI:
                 $this->fetch_type = MYSQLI_ASSOC;
                 break;
-            case 'POSTGRES':
+            case self::RDBMS_POSTGRES:
                 $this->fetch_type = PGSQL_ASSOC;
                 break;
         }
@@ -297,10 +309,10 @@ class Dacapo
     public function setFetchTypeNum()
     {
         switch ($this->rdbms) {
-            case 'MYSQLi':
+            case self::RDBMS_MYSQLI:
                 $this->fetch_type = MYSQLI_NUM;
                 break;
-            case 'POSTGRES':
+            case self::RDBMS_POSTGRES:
                 $this->fetch_type = PGSQL_NUM;
                 break;
         }
@@ -311,10 +323,10 @@ class Dacapo
     public function setFetchTypeBoth()
     {
         switch ($this->rdbms) {
-            case 'MYSQLi':
+            case self::RDBMS_MYSQLI:
                 $this->fetch_type = MYSQLI_BOTH;
                 break;
-            case 'POSTGRES':
+            case self::RDBMS_POSTGRES:
                 $this->fetch_type = PGSQL_BOTH;
                 break;
         }
@@ -384,57 +396,58 @@ class Dacapo
         if (null === $this->conn) {
             $this->applyDacapoErrorHandler();
 
-            if ('MYSQLi' === $this->rdbms) {
-                if ($this->db_port) {
-                    $conn = new \mysqli(
-                        $this->db_server,
-                        $this->db_user,
-                        $this->db_passwd,
-                        $this->db_name,
-                        (int) $this->db_port
-                    );
-                } else {
-                    $conn = new \mysqli(
-                        $this->db_server,
-                        $this->db_user,
-                        $this->db_passwd,
-                        $this->db_name
-                    );
-                }
+            switch ($this->rdbms) {
+                case self::RDBMS_MYSQLI:
+                    if ($this->db_port) {
+                        $conn = new \mysqli(
+                            $this->db_server,
+                            $this->db_user,
+                            $this->db_passwd,
+                            $this->db_name,
+                            (int) $this->db_port
+                        );
+                    } else {
+                        $conn = new \mysqli(
+                            $this->db_server,
+                            $this->db_user,
+                            $this->db_passwd,
+                            $this->db_name
+                        );
+                    }
 
-                if ($this->charset) {
-                    $conn->set_charset($this->charset);
-                }
+                    if ($this->charset) {
+                        $conn->set_charset($this->charset);
+                    }
 
-                $this->conn = $conn;
-            }
+                    $this->conn = $conn;
+                    break;
+                case self::RDBMS_POSTGRES:
+                    $dsn = 'host=' . $this->db_server . ' ';
 
-            if ('POSTGRES' === $this->rdbms) {
-                $dsn = 'host=' . $this->db_server . ' ';
+                    if ($this->db_port) {
+                        $dsn .= 'port=' . $this->db_port . ' ';
+                    }
 
-                if ($this->db_port) {
-                    $dsn .= 'port=' . $this->db_port . ' ';
-                }
+                    $dsn .= 'dbname=' . $this->db_name . ' ';
+                    $dsn .= 'user=' . $this->db_user . ' ';
+                    $dsn .= 'password=' . $this->db_passwd;
 
-                $dsn .= 'dbname=' . $this->db_name . ' ';
-                $dsn .= 'user=' . $this->db_user . ' ';
-                $dsn .= 'password=' . $this->db_passwd;
+                    if ($this->pg_connect_timeout) {
+                        $dsn .= ' connect_timeout=' . $this->pg_connect_timeout;
+                    }
 
-                if ($this->pg_connect_timeout) {
-                    $dsn .= ' connect_timeout=' . $this->pg_connect_timeout;
-                }
+                    if ($this->pg_connect_force_new) {
+                        $conn = pg_connect($dsn, PGSQL_CONNECT_FORCE_NEW);
+                    } else {
+                        $conn = pg_connect($dsn);
+                    }
 
-                if ($this->pg_connect_force_new) {
-                    $conn = pg_connect($dsn, PGSQL_CONNECT_FORCE_NEW);
-                } else {
-                    $conn = pg_connect($dsn);
-                }
+                    if ($this->charset) {
+                        pg_set_client_encoding($conn, $this->charset);
+                    }
 
-                if ($this->charset) {
-                    pg_set_client_encoding($conn, $this->charset);
-                }
-
-                $this->conn = $conn;
+                    $this->conn = $conn;
+                    break;
             }
 
             $this->restoreErrorHandler();
@@ -455,12 +468,13 @@ class Dacapo
         if (null !== $conn) {
             $this->applyDacapoErrorHandler();
 
-            if ('MYSQLi' === $this->rdbms) {
-                $conn->close();
-            }
-
-            if ('POSTGRES' === $this->rdbms) {
-                pg_close($conn);
+            switch ($this->rdbms) {
+                case self::RDBMS_MYSQLI:
+                    $conn->close();
+                    break;
+                case self::RDBMS_POSTGRES:
+                    pg_close($conn);
+                    break;
             }
 
             $this->restoreErrorHandler();
@@ -553,11 +567,11 @@ class Dacapo
         $conn = $this->dbConnect();
 
         switch ($this->rdbms) {
-            case 'MYSQLi':
+            case self::RDBMS_MYSQLI:
                 // switch autocommit status to FALSE. Actually, it starts transaction
                 $conn->autocommit(false);
                 break;
-            case 'POSTGRES':
+            case self::RDBMS_POSTGRES:
                 pg_query($conn, 'BEGIN');
                 break;
         }
@@ -571,11 +585,11 @@ class Dacapo
         $conn = $this->dbConnect();
 
         switch ($this->rdbms) {
-            case 'MYSQLi':
+            case self::RDBMS_MYSQLI:
                 $conn->commit();
                 $conn->autocommit(true);
                 break;
-            case 'POSTGRES':
+            case self::RDBMS_POSTGRES:
                 pg_query($conn, 'COMMIT');
                 break;
         }
@@ -589,11 +603,11 @@ class Dacapo
         $conn = $this->dbConnect();
 
         switch ($this->rdbms) {
-            case 'MYSQLi':
+            case self::RDBMS_MYSQLI:
                 $conn->rollback();
                 $conn->autocommit(true);
                 break;
-            case 'POSTGRES':
+            case self::RDBMS_POSTGRES:
                 pg_query($conn, 'ROLLBACK');
                 break;
         }
@@ -613,47 +627,50 @@ class Dacapo
         // get database connection ---------------------------------------------
         $conn = $this->dbConnect();
 
-        // MYSQLi --------------------------------------------------------------
-        if ('MYSQLi' == $this->rdbms) {
-            $conn->multi_query($sql);
-        }
-
-        // POSTGRES ------------------------------------------------------------
-        if ('POSTGRES' == $this->rdbms) {
-            pg_query($conn, $sql);
+        switch ($this->rdbms) {
+            case self::RDBMS_MYSQLI:
+                $conn->multi_query($sql);
+                break;
+            case self::RDBMS_POSTGRES:
+                pg_query($conn, $sql);
+                break;
         }
     }
 
     /**
      * SQL lower case.
      *
-     * @param mixed $sql_string
+     * @param string $sql_string
      */
     public function lower(string $sql_string)
     {
-        if ('MYSQLi' == $this->rdbms) {
-            return 'LOWER(' . $sql_string . ')';
-        }
-        if ('POSTGRES' == $this->rdbms) {
-            return 'LOWER(' . $sql_string . ')';
+        switch ($this->rdbms) {
+            case self::RDBMS_MYSQLI:
+                return 'LOWER(' . $sql_string . ')';
+                break;
+            case self::RDBMS_POSTGRES:
+                return 'LOWER(' . $sql_string . ')';
+                break;
         }
     }
 
     /**
      * SQL limit.
      *
-     * @param $row_count
-     * @param $offset
+     * @param int $row_count
+     * @param int $offset
      *
      * @return string
      */
     public function limit(int $row_count, int $offset)
     {
-        if ('MYSQLi' === $this->rdbms) {
-            return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
-        }
-        if ('POSTGRES' === $this->rdbms) {
-            return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
+        switch ($this->rdbms) {
+            case self::RDBMS_MYSQLI:
+                return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
+                break;
+            case self::RDBMS_POSTGRES:
+                return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
+                break;
         }
     }
 
@@ -840,136 +857,154 @@ class Dacapo
         // construct sql -------------------------------------------------------
         $a_stmt = explode($this->sql_placeholder, $sql);
 
-        if ('question_mark' === $this->pst_placeholder) {
-            $this->sql = implode('?', $a_stmt);
-        } elseif ('numbered' === $this->pst_placeholder) {
-            $this->sql = '';
-            foreach ($a_stmt as $key => $part) {
-                $idx = $key + 1;
-                $this->sql .= $part . ($key < $bind_params_count ? '$' . $idx : '');
-            }
+        switch ($this->pst_placeholder) {
+            case self::PREPARED_STATEMENTS_QUESTION_MARK:
+                $this->sql = implode('?', $a_stmt);
+                break;
+            case self::PREPARED_STATEMENTS_NUMBERED:
+                $this->sql = '';
+                foreach ($a_stmt as $key => $part) {
+                    $idx = $key + 1;
+                    $this->sql .= $part . ($key < $bind_params_count ? '$' . $idx : '');
+                }
+                break;
         }
 
-        // MYSQLi --------------------------------------------------------------
-        if ('MYSQLi' === $this->rdbms) {
-            // USE database
-            $conn->query('USE ' . $this->db_name);
+        switch ($this->rdbms) {
+            case self::RDBMS_MYSQLI:
+                // USE database
+                $conn->query('USE ' . $this->db_name);
 
-            // Prepare statement
-            $stmt = $conn->prepare($this->sql);
-            if (false === $stmt) {
-                trigger_error($conn->error, E_WARNING);
-            }
-
-            if ($bind_params_count > 0) {
-                // use call_user_func_array, as $stmt->bind_param('s', $param); does not accept params array
-                $a_params = [];
-                $a_types  = $this->a_types;
-
-                $param_type = '';
-                $n          = count($bind_params);
-                for ($i = 0; $i < $n; ++$i) {
-                    $param_type .= $a_types[gettype($bind_params[$i])];
+                // Prepare statement
+                $stmt = $conn->prepare($this->sql);
+                if (false === $stmt) {
+                    trigger_error($conn->error, E_WARNING);
                 }
 
-                // with call_user_func_array, array params must be passed by reference
-                $a_params[] = &$param_type;
+                if ($bind_params_count > 0) {
+                    // use call_user_func_array, as $stmt->bind_param('s', $param); does not accept params array
+                    $a_params = [];
+                    $a_types  = $this->a_types;
 
-                for ($i = 0; $i < $n; ++$i) {
-                    // with call_user_func_array, array params must be passed by reference
-                    $a_params[] = &$bind_params[$i];
-                }
-                call_user_func_array([$stmt, 'bind_param'], $a_params);
-            }
-
-            // Execute statement
-            $stmt->execute();
-
-            if (self::SELECT_QUERY === $this->query_type) {
-                // Fetch result to array
-                $rs = $stmt->get_result();
-
-                $this->num_rows = $rs->num_rows;
-
-                while ($row = $rs->fetch_array($this->fetch_type)) {
-                    array_push($a_data, $row);
-                }
-
-                // free result
-                $stmt->free_result();
-
-                $this->data = $a_data;
-                if ($get_row && $a_data) {
-                    $this->data = $a_data[0];
-                }
-            }
-
-            if (self::INSERT_QUERY === $this->query_type) {
-                $this->insert_id = $stmt->insert_id;
-            }
-
-            if (in_array($this->query_type,
-                [
-                    self::UPDATE_QUERY,
-                    self::INSERT_QUERY,
-                    self::DELETE_QUERY,
-                ])) {
-                $this->affected_rows = $stmt->affected_rows;
-            }
-
-            // Close statement
-            $stmt->close();
-        }
-
-        // POSTGRES ------------------------------------------------------------
-        if ('POSTGRES' == $this->rdbms) {
-            // SET search_path -------------------------------------------------
-            if ($this->db_schema) {
-                pg_query($conn, 'SET search_path TO ' . $this->db_schema);
-            }
-
-            // proceed to query
-            $rs = pg_query_params($conn, $this->sql, $bind_params);
-
-            if (self::SELECT_QUERY === $this->query_type) {
-                $this->num_rows = pg_num_rows($rs);
-
-                while ($row = pg_fetch_array($rs, null, $this->fetch_type)) {
-                    array_push($a_data, $row);
-                }
-
-                $this->data = $a_data;
-                if ($get_row && $a_data) {
-                    $this->data = $a_data[0];
-                }
-            }
-
-            if (self::INSERT_QUERY === $this->query_type) {
-                // get last inserted value of serial column
-                if ($sequence) {
-                    if ('auto' == $sequence) {
-                        $table_name    = $a_sql[2];
-                        $sequence_name = $table_name . '_id_seq';
-                    } else {
-                        $sequence_name = $sequence;
+                    $param_type = '';
+                    $n          = count($bind_params);
+                    for ($i = 0; $i < $n; ++$i) {
+                        $param_type .= $a_types[gettype($bind_params[$i])];
                     }
-                    $sql_serial      = "SELECT currval('$sequence_name')";
-                    $rs_serial       = pg_query($conn, $sql_serial);
-                    $this->insert_id = pg_fetch_result($rs_serial, 0, 0);
-                }
-            }
 
-            if (in_array($this->query_type,
-                [
-                    self::UPDATE_QUERY,
-                    self::INSERT_QUERY,
-                    self::DELETE_QUERY,
-                ])) {
-                $this->affected_rows = pg_affected_rows($rs);
-            }
+                    // with call_user_func_array, array params must be passed by reference
+                    $a_params[] = &$param_type;
+
+                    for ($i = 0; $i < $n; ++$i) {
+                        // with call_user_func_array, array params must be passed by reference
+                        $a_params[] = &$bind_params[$i];
+                    }
+                    call_user_func_array([$stmt, 'bind_param'], $a_params);
+                }
+
+                // Execute statement
+                $stmt->execute();
+
+                if (self::SELECT_QUERY === $this->query_type) {
+                    // Fetch result to array
+                    $rs = $stmt->get_result();
+
+                    $this->num_rows = $rs->num_rows;
+
+                    while ($row = $rs->fetch_array($this->fetch_type)) {
+                        array_push($a_data, $row);
+                    }
+
+                    // free result
+                    $stmt->free_result();
+
+                    $this->data = $a_data;
+                    if ($get_row && $a_data) {
+                        $this->data = $a_data[0];
+                    }
+                }
+
+                if (self::INSERT_QUERY === $this->query_type) {
+                    $this->insert_id = $stmt->insert_id;
+                }
+
+                if (in_array($this->query_type,
+                    [
+                        self::UPDATE_QUERY,
+                        self::INSERT_QUERY,
+                        self::DELETE_QUERY,
+                    ])) {
+                    $this->affected_rows = $stmt->affected_rows;
+                }
+
+                // Close statement
+                $stmt->close();
+
+                break;
+            case self::RDBMS_POSTGRES:
+                // SET search_path ---------------------------------------------
+                if ($this->db_schema) {
+                    pg_query($conn, 'SET search_path TO ' . $this->db_schema);
+                }
+
+                // proceed to query
+                $rs = pg_query_params($conn, $this->sql, $bind_params);
+
+                if (self::SELECT_QUERY === $this->query_type) {
+                    $this->num_rows = pg_num_rows($rs);
+
+                    while ($row = pg_fetch_array($rs, null, $this->fetch_type)) {
+                        array_push($a_data, $row);
+                    }
+
+                    $this->data = $a_data;
+                    if ($get_row && $a_data) {
+                        $this->data = $a_data[0];
+                    }
+                }
+
+                if (self::INSERT_QUERY === $this->query_type) {
+                    // get last inserted value of serial column
+                    if ($sequence) {
+                        if ('auto' == $sequence) {
+                            $table_name    = $a_sql[2];
+                            $sequence_name = $table_name . '_id_seq';
+                        } else {
+                            $sequence_name = $sequence;
+                        }
+                        $sql_serial      = "SELECT currval('$sequence_name')";
+                        $rs_serial       = pg_query($conn, $sql_serial);
+                        $this->insert_id = pg_fetch_result($rs_serial, 0, 0);
+                    }
+                }
+
+                if (in_array($this->query_type,
+                    [
+                        self::UPDATE_QUERY,
+                        self::INSERT_QUERY,
+                        self::DELETE_QUERY,
+                    ])) {
+                    $this->affected_rows = pg_affected_rows($rs);
+                }
+
+                break;
         }
 
         $this->restoreErrorHandler();
+    }
+
+    private function applyDacapoErrorHandler()
+    {
+        if (true === $this->use_dacapo_error_handler) {
+            set_error_handler([$this, 'dacapoErrorHandler'], E_ALL);
+        }
+    }
+
+    private function restoreErrorHandler()
+    {
+        if (true === $this->use_dacapo_error_handler) {
+            restore_error_handler();
+        }
     }
 
     /**
@@ -1013,19 +1048,5 @@ class Dacapo
         }
 
         return 'UNKNOWN ERROR';
-    }
-
-    private function applyDacapoErrorHandler()
-    {
-        if (true === $this->use_dacapo_error_handler) {
-            set_error_handler([$this, 'dacapoErrorHandler'], E_ALL);
-        }
-    }
-
-    private function restoreErrorHandler()
-    {
-        if (true === $this->use_dacapo_error_handler) {
-            restore_error_handler();
-        }
     }
 }
