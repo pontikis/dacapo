@@ -33,10 +33,10 @@ class Dacapo
     const INSERT_QUERY = 'insert';
     const DELETE_QUERY = 'delete';
 
-    const PG_SEQUENCE_NAME_AUTO = 'auto';
-
     const PREPARED_STATEMENTS_QUESTION_MARK = 'question_mark';
     const PREPARED_STATEMENTS_NUMBERED      = 'numbered';
+
+    const PG_SEQUENCE_NAME_AUTO = 'auto';
 
     const ERROR_EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
 
@@ -76,15 +76,15 @@ class Dacapo
     private $query_type;
     /** @var string Postgres schema */
     private $db_schema;
-    /** @var string type of placeholder in prepared statements: one of 'question_mark', 'numbered' */
+    /** @var string variables placeholder in SQL statements */
     private $sql_placeholder;
-    /** @var array types of params to bind with MYSQLi */
+    /** @var string type of placeholder in prepared statements: one of 'question_mark', 'numbered' */
     private $pst_placeholder;
     /** @var int fetch type in various RDBMS: ASSOC, NUM, BOTH */
     private $fetch_type;
-    /** @var string the current sql statement for supported query types - default is ASSOC */
+    /** @var string the current sql statement for supported query types */
     private $sql;
-    /** @var string variables placeholder in SQL statements */
+    /** @var array types of params to bind with MYSQLi */
     private $a_types;
     /** @var array|null data returned */
     private $data;
@@ -92,7 +92,7 @@ class Dacapo
     private $num_rows;
     /** @var bool fetch single row */
     private $fetch_row;
-    /** @var int last inserted id */
+    /** @var int|null last inserted id */
     private $insert_id;
     /** @var string Postgres sequence in INSERT statement (default is 'auto' seq name will be created as tableName_seq_id, null means that there is NO sequence for this table, otherwise the provided name will be used) */
     private $pg_insert_sequence;
@@ -241,7 +241,7 @@ class Dacapo
         return $this->charset;
     }
 
-    public function setCharset(string $charset)
+    public function setCharset($charset)
     {
         $this->charset = $charset;
 
@@ -265,7 +265,7 @@ class Dacapo
         return $this->pg_connect_timeout;
     }
 
-    public function setPgConnectTimout(int $seconds)
+    public function setPgConnectTimout($seconds)
     {
         $this->pg_connect_timeout = $seconds;
 
@@ -278,7 +278,7 @@ class Dacapo
         return $this->db_schema;
     }
 
-    public function setDbSchema(string $schema)
+    public function setDbSchema($schema)
     {
         $this->db_schema = $schema;
 
@@ -405,8 +405,10 @@ class Dacapo
     }
 
     /**
-     * Postgres sequence in INSERT statement (default is 'auto' seq name will be created as tableName_seq_id, null
-     * means that there is NO sequence for this table, otherwise the provided name will be used.
+     * Postgres sequence in INSERT statement
+     * default is 'auto' (self::PG_SEQUENCE_NAME_AUTO), seq name will be created as tableName_seq_id,
+     * null means that there is NO sequence for this table,
+     * otherwise the provided name will be used.
      *
      * @param string|null $seq_name
      */
@@ -523,7 +525,7 @@ class Dacapo
      * @param string $sql
      * @param array  $bind_params
      *
-     * @return bool (true on success)
+     * @throws DacapoErrorException
      */
     public function select(
         string $sql,
@@ -541,7 +543,7 @@ class Dacapo
      * @param string $sql
      * @param array  $bind_params
      *
-     * @return bool (true on success)
+     * @throws DacapoErrorException
      */
     public function insert(
         string $sql,
@@ -557,9 +559,8 @@ class Dacapo
      *
      * @param string $sql
      * @param array  $bind_params
-     * @param array  $options
      *
-     * @return bool (true on success)
+     * @throws DacapoErrorException
      */
     public function update(
         string $sql,
@@ -575,9 +576,8 @@ class Dacapo
      *
      * @param string $sql
      * @param array  $bind_params
-     * @param array  $options
      *
-     * @return bool (true on success)
+     * @throws DacapoErrorException
      */
     public function delete(
         string $sql,
@@ -593,6 +593,8 @@ class Dacapo
     {
         $conn = $this->dbConnect();
 
+        $this->applyDacapoErrorHandler();
+
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
                 // switch autocommit status to FALSE. Actually, it starts transaction
@@ -602,6 +604,8 @@ class Dacapo
                 pg_query($conn, 'BEGIN');
                 break;
         }
+        
+        $this->restoreErrorHandler();
     }
 
     /**
@@ -610,6 +614,8 @@ class Dacapo
     public function commitTrans()
     {
         $conn = $this->dbConnect();
+        
+        $this->applyDacapoErrorHandler();
 
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
@@ -620,6 +626,8 @@ class Dacapo
                 pg_query($conn, 'COMMIT');
                 break;
         }
+
+        $this->restoreErrorHandler();        
     }
 
     /**
@@ -628,6 +636,8 @@ class Dacapo
     public function rollbackTrans()
     {
         $conn = $this->dbConnect();
+        
+        $this->applyDacapoErrorHandler();
 
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
@@ -638,6 +648,8 @@ class Dacapo
                 pg_query($conn, 'ROLLBACK');
                 break;
         }
+
+        $this->restoreErrorHandler();        
     }
 
     /**
@@ -653,6 +665,8 @@ class Dacapo
     {
         // get database connection ---------------------------------------------
         $conn = $this->dbConnect();
+        
+        $this->applyDacapoErrorHandler();
 
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
@@ -662,6 +676,8 @@ class Dacapo
                 pg_query($conn, $sql);
                 break;
         }
+        
+        $this->restoreErrorHandler();           
     }
 
     /**
@@ -674,10 +690,8 @@ class Dacapo
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
                 return 'LOWER(' . $sql_string . ')';
-                break;
             case self::RDBMS_POSTGRES:
                 return 'LOWER(' . $sql_string . ')';
-                break;
         }
     }
 
@@ -694,10 +708,8 @@ class Dacapo
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
                 return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
-                break;
             case self::RDBMS_POSTGRES:
                 return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
-                break;
         }
     }
 
@@ -840,10 +852,12 @@ class Dacapo
     }
 
     /**
+     * Executes a single (suppotred) query.
+     *
      * @param string $sql
      * @param array  $bind_params
      *
-     * @return bool
+     * @throws DacapoErrorException
      */
     private function dacapoQuery(
         string $sql,
