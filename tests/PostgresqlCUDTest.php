@@ -39,7 +39,7 @@ final class PostgresqlCUDTest extends TestCase
         $ds->setPgConnectForceNew(true);
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
 
-        $sql = 'DROP TABLE IF EXISTS customers CASCADE;
+        $sql = "DROP TABLE IF EXISTS customers CASCADE;
 CREATE TABLE customers (
     id integer NOT NULL,
     lastname character varying(100) NOT NULL,
@@ -57,8 +57,9 @@ CREATE SEQUENCE customers_id_seq
     CACHE 1;
 ALTER TABLE customers_id_seq OWNER TO testdb;
 ALTER SEQUENCE customers_id_seq OWNED BY customers.id;
+ALTER TABLE ONLY customers ALTER COLUMN id SET DEFAULT nextval('customers_id_seq'::regclass);
 ALTER TABLE ONLY customers
-    ADD CONSTRAINT customers_pkey PRIMARY KEY (id);';
+    ADD CONSTRAINT customers_pkey PRIMARY KEY (id);";
 
         $ds->execute($sql);
     }
@@ -88,6 +89,50 @@ ALTER TABLE ONLY customers
         $this->assertSame(
             0,
             $ds->getNumRows()
+        );
+    }
+
+    /**
+     * Note the difference (from mysqli::fetch_array) in pg_query_params: it return string values
+     * even in numeric columns.
+     */
+    public function testInsert01()
+    {
+        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds->setPgConnectForceNew(true);
+        $sql           = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params   = [
+            'Robertson',
+            'Jerry',
+            1,
+            '01173 Doe Crossing Hill, Texas, 77346, United States',
+        ];
+        $ds->insert($sql, $bind_params);
+
+        $ds->setFetchRow(true);
+        $sql           = 'SELECT * FROM test.customers WHERE id=?';
+        $bind_params   = [1];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            1,
+            (int) $row['id']
+        );
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+        $this->assertSame(
+            'Jerry',
+            $row['firstname']
+        );
+        $this->assertSame(
+            1,
+            (int) $row['gender']
+        );
+        $this->assertSame(
+            '01173 Doe Crossing Hill, Texas, 77346, United States',
+            $row['address']
         );
     }
 }

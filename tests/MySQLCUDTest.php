@@ -75,4 +75,43 @@ CREATE TABLE `customers` (
             $ds->getNumRows()
         );
     }
+
+    public function testInsert01()
+    {
+        $ds            = new Dacapo(self::$db, self::$mc);
+        $sql           = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params   = [
+            'Robertson',
+            'Jerry',
+            1,
+            '01173 Doe Crossing Hill, Texas, 77346, United States',
+        ];
+        $ds->insert($sql, $bind_params);
+
+        $ds->setFetchRow(true);
+        $sql           = 'SELECT * FROM customers WHERE id=?';
+        $bind_params   = [1];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            1,
+            $row['id']
+        );
+        $this->assertSame(
+            'Robertson',
+            $row['lastname']
+        );
+        $this->assertSame(
+            'Jerry',
+            $row['firstname']
+        );
+        $this->assertSame(
+            1,
+            $row['gender']
+        );
+        $this->assertSame(
+            '01173 Doe Crossing Hill, Texas, 77346, United States',
+            $row['address']
+        );
+    }
 }
