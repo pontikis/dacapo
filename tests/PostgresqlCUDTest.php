@@ -5,23 +5,23 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Pontikis\Database\Dacapo;
 
-final class MySQLCUDTest extends TestCase
+final class PostgresqlCUDTest extends TestCase
 {
     protected static $db;
 
     protected static $mc;
 
     ////////////////////////////////////////////////////////////////////
-    // Basic setup - it runs once in Class                            //
+    // Basic setup - it runs once in Class (before tests)             //
     ////////////////////////////////////////////////////////////////////
     public static function setUpBeforeClass()
     {
         self::$db = [
-            'rdbms'     => Dacapo::RDBMS_MYSQLI,
-            'db_server' => $GLOBALS['MYSQL_SERVER_NAME'],
-            'db_user'   => $GLOBALS['MYSQL_USER'],
-            'db_passwd' => $GLOBALS['MYSQL_PASSWD'],
-            'db_name'   => $GLOBALS['MYSQL_DBNAME'],
+            'rdbms'     => Dacapo::RDBMS_POSTGRES,
+            'db_server' => $GLOBALS['POSTGRES_SERVER_NAME'],
+            'db_user'   => $GLOBALS['POSTGRES_USER'],
+            'db_passwd' => $GLOBALS['POSTGRES_PASSWD'],
+            'db_name'   => $GLOBALS['POSTGRES_DBNAME'],
         ];
 
         self::$mc = [
@@ -37,16 +37,26 @@ final class MySQLCUDTest extends TestCase
 
         $ds = new Dacapo(self::$db, self::$mc);
 
-        $sql = 'DROP TABLE IF EXISTS `customers`;
-CREATE TABLE `customers` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `lastname` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `firstname` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `fathername` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `gender` tinyint(4) DEFAULT NULL,
-  `address` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;';
+        $sql = 'DROP TABLE IF EXISTS customers CASCADE;
+CREATE TABLE customers (
+    id integer NOT NULL,
+    lastname character varying(100) NOT NULL,
+    firstname character varying(100) NOT NULL,
+    fathername character varying(100),
+    gender integer,
+    address character varying(200)
+);
+ALTER TABLE customers OWNER TO testdb;
+CREATE SEQUENCE customers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+ALTER TABLE customers_id_seq OWNER TO testdb;
+ALTER SEQUENCE customers_id_seq OWNED BY customers.id;
+ALTER TABLE ONLY customers
+    ADD CONSTRAINT customers_pkey PRIMARY KEY (id);';
 
         $ds->execute($sql);
     }
@@ -57,7 +67,7 @@ CREATE TABLE `customers` (
     public static function tearDownAfterClass()
     {
         $ds  = new Dacapo(self::$db, self::$mc);
-        $sql = 'DROP TABLE IF EXISTS `customers`;';
+        $sql = 'DROP TABLE IF EXISTS customers CASCADE;';
         $ds->execute($sql);
     }
 
@@ -66,9 +76,9 @@ CREATE TABLE `customers` (
     ////////////////////////////////////////////////////////////////////
     public function testSelect01()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
-        $sql           = 'SELECT * FROM customers';
-        $bind_params   = [];
+        $ds          = new Dacapo(self::$db, self::$mc);
+        $sql         = 'SELECT * FROM test.customers';
+        $bind_params = [];
         $ds->select($sql, $bind_params);
         $this->assertSame(
             0,
