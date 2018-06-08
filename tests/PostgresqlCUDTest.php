@@ -36,6 +36,8 @@ final class PostgresqlCUDTest extends TestCase
         ];
 
         $ds = new Dacapo(self::$db, self::$mc);
+        $ds->setPgConnectForceNew(true);
+        $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
 
         $sql = 'DROP TABLE IF EXISTS customers CASCADE;
 CREATE TABLE customers (
@@ -67,8 +69,10 @@ ALTER TABLE ONLY customers
     public static function tearDownAfterClass()
     {
         $ds  = new Dacapo(self::$db, self::$mc);
+        $ds->setPgConnectForceNew(true);
+        $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql = 'DROP TABLE IF EXISTS customers CASCADE;';
-        $ds->execute($sql);
+        //$ds->execute($sql);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -77,6 +81,7 @@ ALTER TABLE ONLY customers
     public function testSelect01()
     {
         $ds          = new Dacapo(self::$db, self::$mc);
+        $ds->setPgConnectForceNew(true);
         $sql         = 'SELECT * FROM test.customers';
         $bind_params = [];
         $ds->select($sql, $bind_params);

@@ -673,6 +673,11 @@ class Dacapo
                 $conn->multi_query($sql);
                 break;
             case self::RDBMS_POSTGRES:
+                // SET search_path ---------------------------------------------
+                if ($this->db_schema) {
+                    pg_query($conn, 'SET search_path TO ' . $this->db_schema);
+                }
+
                 pg_query($conn, $sql);
                 break;
         }
