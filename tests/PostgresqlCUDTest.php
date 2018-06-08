@@ -72,7 +72,7 @@ ALTER TABLE ONLY customers
         $ds->setPgConnectForceNew(true);
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql = 'DROP TABLE IF EXISTS customers CASCADE;';
-        //$ds->execute($sql);
+        $ds->execute($sql);
     }
 
     ////////////////////////////////////////////////////////////////////
