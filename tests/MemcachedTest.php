@@ -28,14 +28,13 @@ final class MemcachedTest extends TestCase
         ];
 
         self::$mc = [
-            'mc_pool'       => [
+            'mc_pool' => [
                 [
                     'mc_server' => '127.0.0.1',
                     'mc_port'   => '11211',
                     'mc_weight' => 0,
                 ],
             ],
-            'use_memcached' => true,
         ];
     }
 
@@ -44,8 +43,11 @@ final class MemcachedTest extends TestCase
     ////////////////////////////////////////////////////////////////////
     public function testInstance01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo([], self::$mc);
 
-        $this->assertTrue(true);
+        $this->assertInstanceOf(
+            Dacapo::class,
+            $ds
+        );
     }
 }
