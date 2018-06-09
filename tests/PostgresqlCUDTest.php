@@ -215,11 +215,11 @@ ALTER TABLE ONLY customers
      */
     public function testUpdate01()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
-        $sql           = 'UPDATE test.customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
-        $bind_params   = [
+        $sql         = 'UPDATE test.customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
+        $bind_params = [
             'Wallace',
             'Craig',
             1,
@@ -233,8 +233,8 @@ ALTER TABLE ONLY customers
         );
 
         $ds->setFetchRow(true);
-        $sql           = 'SELECT * FROM test.customers WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT * FROM test.customers WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
         $row = $ds->getData();
         $this->assertSame(
@@ -264,11 +264,11 @@ ALTER TABLE ONLY customers
      */
     public function testUpdate01el()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
-        $sql           = 'UPDATE test.customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
-        $bind_params   = [
+        $sql         = 'UPDATE test.customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
+        $bind_params = [
             'Γεωργόπουλος',
             'Βασίλειος',
             1,
@@ -282,8 +282,8 @@ ALTER TABLE ONLY customers
         );
 
         $ds->setFetchRow(true);
-        $sql           = 'SELECT * FROM test.customers WHERE id=?';
-        $bind_params   = [2];
+        $sql         = 'SELECT * FROM test.customers WHERE id=?';
+        $bind_params = [2];
         $ds->select($sql, $bind_params);
         $row = $ds->getData();
         $this->assertSame(
@@ -317,11 +317,11 @@ ALTER TABLE ONLY customers
      */
     public function testDelete01()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
-        $sql           = 'DELETE FROM test.customers WHERE id IN (?,?)';
-        $bind_params   = [
+        $sql         = 'DELETE FROM test.customers WHERE id IN (?,?)';
+        $bind_params = [
             1,
             2,
         ];
@@ -331,8 +331,8 @@ ALTER TABLE ONLY customers
             $ds->getAffectedRows()
         );
 
-        $sql           = 'SELECT * FROM test.customers';
-        $bind_params   = [];
+        $sql         = 'SELECT * FROM test.customers';
+        $bind_params = [];
         $ds->select($sql, $bind_params);
         $this->assertSame(
             0,
@@ -350,14 +350,14 @@ ALTER TABLE ONLY customers
      */
     public function testTransactions01()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
 
         $ds->beginTrans();
 
-        $sql           = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
-        $bind_params   = [
+        $sql         = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params = [
             'Fowler',
             'Jeremy',
             1,
@@ -367,8 +367,8 @@ ALTER TABLE ONLY customers
 
         $ds->rollbackTrans();
 
-        $sql           = 'SELECT * FROM test.customers WHERE lastname=? AND firstname=?';
-        $bind_params   = [
+        $sql         = 'SELECT * FROM test.customers WHERE lastname=? AND firstname=?';
+        $bind_params = [
             'Fowler',
             'Jeremy',
         ];
@@ -387,14 +387,14 @@ ALTER TABLE ONLY customers
      */
     public function testTransactions02()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
 
         $ds->beginTrans();
 
-        $sql           = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
-        $bind_params   = [
+        $sql         = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params = [
             'Fowler',
             'Jeremy',
             1,
@@ -405,8 +405,8 @@ ALTER TABLE ONLY customers
         $ds->commitTrans();
 
         $ds->setFetchRow(true);
-        $sql           = 'SELECT * FROM test.customers WHERE lastname=? AND firstname=?';
-        $bind_params   = [
+        $sql         = 'SELECT * FROM test.customers WHERE lastname=? AND firstname=?';
+        $bind_params = [
             'Fowler',
             'Jeremy',
         ];
@@ -430,6 +430,114 @@ ALTER TABLE ONLY customers
         );
         $this->assertSame(
             '23 Dottie Trail, Virginia, 20189, United States',
+            $row['address']
+        );
+    }
+
+    /**
+     * @depends testTransactions02
+     */
+    public function testTransactions03()
+    {
+        $ds = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+        $ds->setPgConnectForceNew(true);
+
+        try {
+            $ds->beginTrans();
+
+            $sql         = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+            $bind_params = [
+                'Johnston',
+                'Patrick',
+                1,
+                '03 Scott Terrace, Nevada, 89120, United States',
+            ];
+            $ds->insert($sql, $bind_params);
+
+            $sql         = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+            $bind_params = [
+                'Gardner',
+                'Shawn',
+                1,
+                '988 Wayridge Park, Arizona, 85255, United States',
+            ];
+            $ds->insert($sql, $bind_params);
+
+            throw new Exception('Transcaction aborted');
+            $ds->commitTrans();
+        } catch (Exception $e) {
+            $ds->rollbackTrans();
+            $this->expectOutputString('Transcaction aborted');
+            echo $e->getMessage();
+        }
+    }
+
+    /**
+     * @depends testTransactions02
+     */
+    public function testTransactions04()
+    {
+        $ds = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+        $ds->setPgConnectForceNew(true);
+
+        try {
+            $ds->beginTrans();
+
+            $sql         = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+            $bind_params = [
+                'Johnston',
+                'Patrick',
+                1,
+                '03 Scott Terrace, Nevada, 89120, United States',
+            ];
+            $ds->insert($sql, $bind_params);
+
+            $sql         = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+            $bind_params = [
+                'Gardner',
+                'Shawn',
+                1,
+                '988 Wayridge Park, Arizona, 85255, United States',
+            ];
+            $ds->insert($sql, $bind_params);
+
+            $ds->commitTrans();
+        } catch (Exception $e) {
+            $ds->rollbackTrans();
+        }
+
+        $ds->setFetchRow(true);
+        $sql         = 'SELECT * FROM test.customers WHERE lastname=? AND firstname=?';
+        $bind_params = [
+            'Johnston',
+            'Patrick',
+        ];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            7,
+            (int) $row['id']
+        );
+        $this->assertSame(
+            '03 Scott Terrace, Nevada, 89120, United States',
+            $row['address']
+        );
+
+        $sql         = 'SELECT * FROM test.customers WHERE lastname=? AND firstname=?';
+        $bind_params = [
+            'Gardner',
+            'Shawn',
+        ];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            8,
+            (int) $row['id']
+        );
+        $this->assertSame(
+            '988 Wayridge Park, Arizona, 85255, United States',
             $row['address']
         );
     }

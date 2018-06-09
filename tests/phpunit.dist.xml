@@ -45,5 +45,14 @@
         <var name="POSTGRES_CHARSET_WRONG" value="WIN1253" />   
         <!-- Wrong RDBMS -->                   
         <var name="RDBMS_WRONG" value="WRONG" />        
+        <!-- Options -->                 
+        <!-- 
+        In *CUD* tests a table customers is created to test
+        Insert (C) Update (U) and Delete (D) operations.
+        This is deleted after all tests have been executed
+        according to this option
+         -->                           
+        <var name="MYSQL_DROP_TABLES_CREATED_FOR_UPDATE" value="1" />   
+        <var name="POSTGRES_DROP_TABLES_CREATED_FOR_UPDATE" value="1" />                  
     </php>
 </phpunit>

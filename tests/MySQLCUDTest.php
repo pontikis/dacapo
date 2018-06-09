@@ -68,10 +68,10 @@ CREATE TABLE `customers` (
     ////////////////////////////////////////////////////////////////////
     public function testSelect01()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
-        $sql           = 'SELECT * FROM customers';
-        $bind_params   = [];
+        $sql         = 'SELECT * FROM customers';
+        $bind_params = [];
         $ds->select($sql, $bind_params);
         $this->assertSame(
             0,
@@ -88,10 +88,10 @@ CREATE TABLE `customers` (
      */
     public function testInsert01()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
-        $sql           = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
-        $bind_params   = [
+        $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params = [
             'Robertson',
             'Jerry',
             1,
@@ -108,8 +108,8 @@ CREATE TABLE `customers` (
         );
 
         $ds->setFetchRow(true);
-        $sql           = 'SELECT * FROM customers WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT * FROM customers WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
         $row = $ds->getData();
         $this->assertSame(
@@ -139,10 +139,10 @@ CREATE TABLE `customers` (
      */
     public function testInsert01el()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
-        $sql           = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
-        $bind_params   = [
+        $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params = [
             'Γεωργίου',
             'Γεώργιος',
             1,
@@ -159,8 +159,8 @@ CREATE TABLE `customers` (
         );
 
         $ds->setFetchRow(true);
-        $sql           = 'SELECT * FROM customers WHERE id=?';
-        $bind_params   = [2];
+        $sql         = 'SELECT * FROM customers WHERE id=?';
+        $bind_params = [2];
         $ds->select($sql, $bind_params);
         $row = $ds->getData();
         $this->assertSame(
@@ -194,10 +194,10 @@ CREATE TABLE `customers` (
      */
     public function testUpdate01()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
-        $sql           = 'UPDATE customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
-        $bind_params   = [
+        $sql         = 'UPDATE customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
+        $bind_params = [
             'Wallace',
             'Craig',
             1,
@@ -211,8 +211,8 @@ CREATE TABLE `customers` (
         );
 
         $ds->setFetchRow(true);
-        $sql           = 'SELECT * FROM customers WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT * FROM customers WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
         $row = $ds->getData();
         $this->assertSame(
@@ -242,10 +242,10 @@ CREATE TABLE `customers` (
      */
     public function testUpdate01el()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
-        $sql           = 'UPDATE customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
-        $bind_params   = [
+        $sql         = 'UPDATE customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
+        $bind_params = [
             'Γεωργόπουλος',
             'Βασίλειος',
             1,
@@ -259,8 +259,8 @@ CREATE TABLE `customers` (
         );
 
         $ds->setFetchRow(true);
-        $sql           = 'SELECT * FROM customers WHERE id=?';
-        $bind_params   = [2];
+        $sql         = 'SELECT * FROM customers WHERE id=?';
+        $bind_params = [2];
         $ds->select($sql, $bind_params);
         $row = $ds->getData();
         $this->assertSame(
@@ -294,10 +294,10 @@ CREATE TABLE `customers` (
      */
     public function testDelete01()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
-        $sql           = 'DELETE FROM customers WHERE id IN (?,?)';
-        $bind_params   = [
+        $sql         = 'DELETE FROM customers WHERE id IN (?,?)';
+        $bind_params = [
             1,
             2,
         ];
@@ -307,8 +307,8 @@ CREATE TABLE `customers` (
             $ds->getAffectedRows()
         );
 
-        $sql           = 'SELECT * FROM customers';
-        $bind_params   = [];
+        $sql         = 'SELECT * FROM customers';
+        $bind_params = [];
         $ds->select($sql, $bind_params);
         $this->assertSame(
             0,
@@ -326,13 +326,13 @@ CREATE TABLE `customers` (
      */
     public function testTransactions01()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
 
         $ds->beginTrans();
 
-        $sql           = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
-        $bind_params   = [
+        $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params = [
             'Fowler',
             'Jeremy',
             1,
@@ -342,8 +342,8 @@ CREATE TABLE `customers` (
 
         $ds->rollbackTrans();
 
-        $sql           = 'SELECT * FROM customers WHERE lastname=? AND firstname=?';
-        $bind_params   = [
+        $sql         = 'SELECT * FROM customers WHERE lastname=? AND firstname=?';
+        $bind_params = [
             'Fowler',
             'Jeremy',
         ];
@@ -362,13 +362,13 @@ CREATE TABLE `customers` (
      */
     public function testTransactions02()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
 
         $ds->beginTrans();
 
-        $sql           = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
-        $bind_params   = [
+        $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params = [
             'Fowler',
             'Jeremy',
             1,
@@ -379,8 +379,8 @@ CREATE TABLE `customers` (
         $ds->commitTrans();
 
         $ds->setFetchRow(true);
-        $sql           = 'SELECT * FROM customers WHERE lastname=? AND firstname=?';
-        $bind_params   = [
+        $sql         = 'SELECT * FROM customers WHERE lastname=? AND firstname=?';
+        $bind_params = [
             'Fowler',
             'Jeremy',
         ];
@@ -404,6 +404,112 @@ CREATE TABLE `customers` (
         );
         $this->assertSame(
             '23 Dottie Trail, Virginia, 20189, United States',
+            $row['address']
+        );
+    }
+
+    /**
+     * @depends testTransactions02
+     */
+    public function testTransactions03()
+    {
+        $ds = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+
+        try {
+            $ds->beginTrans();
+
+            $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+            $bind_params = [
+                'Johnston',
+                'Patrick',
+                1,
+                '03 Scott Terrace, Nevada, 89120, United States',
+            ];
+            $ds->insert($sql, $bind_params);
+
+            $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+            $bind_params = [
+                'Gardner',
+                'Shawn',
+                1,
+                '988 Wayridge Park, Arizona, 85255, United States',
+            ];
+            $ds->insert($sql, $bind_params);
+
+            throw new Exception('Transcaction aborted');
+            $ds->commitTrans();
+        } catch (Exception $e) {
+            $ds->rollbackTrans();
+            $this->expectOutputString('Transcaction aborted');
+            echo $e->getMessage();
+        }
+    }
+
+    /**
+     * @depends testTransactions02
+     */
+    public function testTransactions04()
+    {
+        $ds = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+
+        try {
+            $ds->beginTrans();
+
+            $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+            $bind_params = [
+                'Johnston',
+                'Patrick',
+                1,
+                '03 Scott Terrace, Nevada, 89120, United States',
+            ];
+            $ds->insert($sql, $bind_params);
+
+            $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+            $bind_params = [
+                'Gardner',
+                'Shawn',
+                1,
+                '988 Wayridge Park, Arizona, 85255, United States',
+            ];
+            $ds->insert($sql, $bind_params);
+
+            $ds->commitTrans();
+        } catch (Exception $e) {
+            $ds->rollbackTrans();
+        }
+
+        $ds->setFetchRow(true);
+        $sql         = 'SELECT * FROM customers WHERE lastname=? AND firstname=?';
+        $bind_params = [
+            'Johnston',
+            'Patrick',
+        ];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            7,
+            $row['id']
+        );
+        $this->assertSame(
+            '03 Scott Terrace, Nevada, 89120, United States',
+            $row['address']
+        );
+
+        $sql         = 'SELECT * FROM customers WHERE lastname=? AND firstname=?';
+        $bind_params = [
+            'Gardner',
+            'Shawn',
+        ];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            8,
+            $row['id']
+        );
+        $this->assertSame(
+            '988 Wayridge Park, Arizona, 85255, United States',
             $row['address']
         );
     }

@@ -41,9 +41,6 @@ class Dacapo
     const ERROR_EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
 
     const ERROR_RDBMS_NOT_SUPPORTED = 'Database not supported';
-    const ERROR_MYSQLI_IS_REQUIRED  = 'mysqli extension is required';
-    const ERROR_MYSQLND_IS_REQUIRED = 'mysqlnd extension is required';
-    const ERROR_PGSQL_IS_REQUIRED   = 'pgsql extension is required';
 
     const ERROR_DBSERVER_IS_REQUIRED = 'Database server name or IP is required';
     const ERROR_DBNAME_IS_REQUIRED   = 'Database name is required';
@@ -122,24 +119,6 @@ class Dacapo
         // RDBMS not supported
         if (false === in_array($this->rdbms, [self::RDBMS_MYSQLI, self::RDBMS_POSTGRES])) {
             throw new Exception(self::ERROR_RDBMS_NOT_SUPPORTED);
-        }
-
-        // Extension needed
-        switch ($this->rdbms) {
-            case self::RDBMS_MYSQLI:
-                if (false === extension_loaded('mysqli')) {
-                    throw new Exception(self::ERROR_MYSQLI_IS_REQUIRED);
-                }
-
-                if (false === extension_loaded('mysqlnd')) {
-                    throw new Exception(self::ERROR_MYSQLND_IS_REQUIRED);
-                }
-                break;
-            case self::RDBMS_POSTGRES:
-                if (false === extension_loaded('pgsql')) {
-                    throw new Exception(self::ERROR_PGSQL_IS_REQUIRED);
-                }
-                break;
         }
 
         $this->conn = null;

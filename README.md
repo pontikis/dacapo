@@ -15,7 +15,7 @@ Overview - features
 * Only prepared statements are used
 * Support of transactions
 * Use Memcached https://memcached.org/ to cache results (optional)
-* Write SQL easily and securely. Use dacapo ``sql_placeholder`` (? is the default) in place of parameters values. Dacapo will create SQL prepared statements.
+* Write SQL easily and securely. Use dacapo ``sql_placeholder`` (? is the default) in place of parameters values. Dacapo will create SQL prepared statements from standard ANSI SQL.
 
 ```php
 $sql = 'SELECT procuct_name FROM products WHERE manufacturer = ? and type IN (?,?,?)';
@@ -180,29 +180,24 @@ try {
 ### Transactions
 
 ```php
-$ds->beginTrans();
-
-// delete from customers
-$sql = 'DELETE FROM customers WHERE id = ?';
-$bind_params = [$customers_id];
 try {
+	$ds->beginTrans();
+
+	// delete from customers
+	$sql = 'DELETE FROM customers WHERE id = ?';
+	$bind_params = [$customers_id];
 	$ds->delete($sql, $bind_params);
+
+	// delete from demographics
+	$sql = 'DELETE FROM demographics WHERE id = ?';
+	$bind_params = [$customer_demographics_id];
+	$ds->delete($sql, $bind_params);
+
+	$ds->commitTrans();
 } catch (DacapoErrorException $e) {
 	$ds->rollbackTrans();
 	// your code here
 }
-
-// delete from demographics
-$sql = 'DELETE FROM demographics WHERE id = ?';
-$bind_params = [$customer_demographics_id];
-try {
-	$ds->delete($sql, $bind_params);
-} catch (DacapoErrorException $e) {
-	$ds->rollbackTrans();
-	// your code here
-}
-
-$ds->commitTrans();
 ```
 
 ### Memcached
