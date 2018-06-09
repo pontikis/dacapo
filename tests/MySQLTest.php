@@ -31,8 +31,6 @@ final class MySQLTest extends TestCase
 
     protected static $db_wrong_dbname_with_server_ip;
 
-    protected static $mc;
-
     ////////////////////////////////////////////////////////////////////
     // Basic setup - it runs once in Class                            //
     ////////////////////////////////////////////////////////////////////
@@ -75,17 +73,6 @@ final class MySQLTest extends TestCase
 
         self::$db_wrong_dbname_with_server_ip            = self::$db_with_server_ip;
         self::$db_wrong_dbname_with_server_ip['db_name'] = $GLOBALS['MYSQL_DBNAME_WRONG'];
-
-        self::$mc = [
-            'mc_pool'       => [
-                [
-                    'mc_server' => '127.0.0.1',
-                    'mc_port'   => '11211',
-                    'mc_weight' => 0,
-                ],
-            ],
-            'use_memcached' => true,
-        ];
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -93,7 +80,7 @@ final class MySQLTest extends TestCase
     ////////////////////////////////////////////////////////////////////
     public function testInstance01()
     {
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
 
         $this->assertInstanceOf(
             Dacapo::class,
@@ -103,7 +90,7 @@ final class MySQLTest extends TestCase
 
     public function testInstance02()
     {
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
 
         $this->assertInstanceOf(
             Dacapo::class,
@@ -115,7 +102,7 @@ final class MySQLTest extends TestCase
     {
         $this->expectException(Exception::class);
         $this->expectExceptionMessage(Dacapo::ERROR_RDBMS_NOT_SUPPORTED);
-        $ds = new Dacapo(self::$db_wrong_rdbms, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_rdbms);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -123,7 +110,7 @@ final class MySQLTest extends TestCase
     ////////////////////////////////////////////////////////////////////
     public function testConnect01()
     {
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
 
         $this->assertInstanceOf(
             Dacapo::class,
@@ -135,7 +122,7 @@ final class MySQLTest extends TestCase
             $ds->dbConnect()
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setDbPort((int) $GLOBALS['MYSQL_PORT']);
 
         $this->assertInstanceOf(
@@ -148,7 +135,7 @@ final class MySQLTest extends TestCase
             $ds->dbConnect()
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
 
         $this->assertInstanceOf(
@@ -164,7 +151,7 @@ final class MySQLTest extends TestCase
 
     public function testConnect02()
     {
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
 
         $this->assertInstanceOf(
             Dacapo::class,
@@ -176,7 +163,7 @@ final class MySQLTest extends TestCase
             $ds->dbConnect()
         );
 
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
         $ds->setDbPort((int) $GLOBALS['MYSQL_PORT']);
 
         $this->assertInstanceOf(
@@ -189,7 +176,7 @@ final class MySQLTest extends TestCase
             $ds->dbConnect()
         );
 
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
 
         $this->assertInstanceOf(
@@ -213,7 +200,7 @@ final class MySQLTest extends TestCase
      */
     public function testConnectFails01()
     {
-        $ds = new Dacapo(self::$db_wrong_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_server_name);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
@@ -223,7 +210,7 @@ final class MySQLTest extends TestCase
      */
     public function testConnectFails01a()
     {
-        $ds = new Dacapo(self::$db_wrong_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -239,7 +226,7 @@ final class MySQLTest extends TestCase
      */
     public function testConnectFails02()
     {
-        $ds = new Dacapo(self::$db_wrong_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_server_ip);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
@@ -249,7 +236,7 @@ final class MySQLTest extends TestCase
      */
     public function testConnectFails02a()
     {
-        $ds = new Dacapo(self::$db_wrong_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_server_ip);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -257,14 +244,14 @@ final class MySQLTest extends TestCase
 
     public function testConnectFails03()
     {
-        $ds = new Dacapo(self::$db_wrong_user_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_user_with_server_name);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails03a()
     {
-        $ds = new Dacapo(self::$db_wrong_user_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_user_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -272,14 +259,14 @@ final class MySQLTest extends TestCase
 
     public function testConnectFails04()
     {
-        $ds = new Dacapo(self::$db_wrong_user_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_user_with_server_ip);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails04a()
     {
-        $ds = new Dacapo(self::$db_wrong_user_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_user_with_server_ip);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -287,14 +274,14 @@ final class MySQLTest extends TestCase
 
     public function testConnectFails05()
     {
-        $ds = new Dacapo(self::$db_wrong_passwd_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_name);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails05a()
     {
-        $ds = new Dacapo(self::$db_wrong_passwd_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -302,14 +289,14 @@ final class MySQLTest extends TestCase
 
     public function testConnectFails06()
     {
-        $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails06a()
     {
-        $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -317,14 +304,14 @@ final class MySQLTest extends TestCase
 
     public function testConnectFails07()
     {
-        $ds = new Dacapo(self::$db_wrong_dbname_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_name);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails07a()
     {
-        $ds = new Dacapo(self::$db_wrong_dbname_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -332,14 +319,14 @@ final class MySQLTest extends TestCase
 
     public function testConnectFails08()
     {
-        $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails08a()
     {
-        $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -353,7 +340,7 @@ final class MySQLTest extends TestCase
             );
         }
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
@@ -367,7 +354,7 @@ final class MySQLTest extends TestCase
             );
         }
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
@@ -376,7 +363,7 @@ final class MySQLTest extends TestCase
 
     public function testConnectFails10()
     {
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
         $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
@@ -384,7 +371,7 @@ final class MySQLTest extends TestCase
 
     public function testConnectFails10a()
     {
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
         $ds->setDbPort((int) $GLOBALS['MYSQL_PORT_WRONG']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
@@ -396,7 +383,7 @@ final class MySQLTest extends TestCase
     ////////////////////////////////////////////////////////////////////
     public function testSelect01()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $sql           = 'SELECT * FROM customers_en';
         $bind_params   = [];
         $ds->select($sql, $bind_params);
@@ -408,7 +395,7 @@ final class MySQLTest extends TestCase
 
     public function testSelect01el()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $sql           = 'SELECT * FROM customers_el';
         $bind_params   = [];
         $ds->select($sql, $bind_params);
@@ -420,7 +407,7 @@ final class MySQLTest extends TestCase
 
     public function testSelect02()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
         $bind_params   = [1];
@@ -431,7 +418,7 @@ final class MySQLTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
@@ -443,7 +430,7 @@ final class MySQLTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET_WRONG']);
         $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
@@ -458,7 +445,7 @@ final class MySQLTest extends TestCase
 
     public function testSelect02el()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
         $bind_params   = [1];
@@ -469,7 +456,7 @@ final class MySQLTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
@@ -481,7 +468,7 @@ final class MySQLTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET_WRONG']);
         $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
@@ -496,7 +483,7 @@ final class MySQLTest extends TestCase
 
     public function testSelect03()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeAssoc();
@@ -509,7 +496,7 @@ final class MySQLTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeNum();
@@ -522,7 +509,7 @@ final class MySQLTest extends TestCase
             $row[0]
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeBoth();
@@ -542,7 +529,7 @@ final class MySQLTest extends TestCase
 
     public function testSelect03el()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeAssoc();
@@ -555,7 +542,7 @@ final class MySQLTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeNum();
@@ -568,7 +555,7 @@ final class MySQLTest extends TestCase
             $row[0]
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeBoth();
@@ -588,7 +575,7 @@ final class MySQLTest extends TestCase
 
     public function testSelectFails01()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $sql           = 'SELECT * FROM customers_xx';
         $bind_params   = [];
         $this->expectException(DacapoErrorException::class);
@@ -597,7 +584,7 @@ final class MySQLTest extends TestCase
 
     public function testSelectFails01a()
     {
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $sql           = 'SELECT * FROM customers_xx';
         $bind_params   = [];
@@ -607,7 +594,7 @@ final class MySQLTest extends TestCase
 
     public function testSelectFails02()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $sql           = 'SELECT * FROM customers_en WHERE wrong_column=?';
         $bind_params   = [1];
         $this->expectException(DacapoErrorException::class);
@@ -616,7 +603,7 @@ final class MySQLTest extends TestCase
 
     public function testSelectFails02a()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $sql           = 'SELECT * FROM customers_en WHERE wrong_column=?';
         $bind_params   = [1];
@@ -626,7 +613,7 @@ final class MySQLTest extends TestCase
 
     public function testSelectFails03()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $sql           = 'SELECT * FROM customers_en WHERE id=?';
         $bind_params   = [1, 2];
         $this->expectException(DacapoErrorException::class);
@@ -635,7 +622,7 @@ final class MySQLTest extends TestCase
 
     public function testSelectFails03a()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $sql           = 'SELECT * FROM customers_en WHERE id=?';
         $bind_params   = [1, 2];
@@ -645,7 +632,7 @@ final class MySQLTest extends TestCase
 
     public function testSelectFails04()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $sql           = 'SELECT * FROM customers_en WHERE id=? AND lastname=?';
         $bind_params   = [1];
         $this->expectException(DacapoErrorException::class);
@@ -654,7 +641,7 @@ final class MySQLTest extends TestCase
 
     public function testSelectFails04a()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $sql           = 'SELECT * FROM customers_en WHERE id=? AND lastname=?';
         $bind_params   = [1];

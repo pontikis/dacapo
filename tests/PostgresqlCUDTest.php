@@ -9,8 +9,6 @@ final class PostgresqlCUDTest extends TestCase
 {
     protected static $db;
 
-    protected static $mc;
-
     ////////////////////////////////////////////////////////////////////
     // Basic setup - it runs once in Class (before tests)             //
     ////////////////////////////////////////////////////////////////////
@@ -24,18 +22,7 @@ final class PostgresqlCUDTest extends TestCase
             'db_name'   => $GLOBALS['POSTGRES_DBNAME'],
         ];
 
-        self::$mc = [
-            'mc_pool'       => [
-                [
-                    'mc_server' => '127.0.0.1',
-                    'mc_port'   => '11211',
-                    'mc_weight' => 0,
-                ],
-            ],
-            'use_memcached' => true,
-        ];
-
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setPgConnectForceNew(true);
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
 
@@ -70,7 +57,7 @@ ALTER TABLE ONLY customers
     public static function tearDownAfterClass()
     {
         if (1 === (int) $GLOBALS['POSTGRES_DROP_TABLES_CREATED_FOR_UPDATE']) {
-            $ds = new Dacapo(self::$db, self::$mc);
+            $ds = new Dacapo(self::$db);
             $ds->setPgConnectForceNew(true);
             $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
             $sql = 'DROP TABLE IF EXISTS customers CASCADE;';
@@ -83,7 +70,7 @@ ALTER TABLE ONLY customers
     ////////////////////////////////////////////////////////////////////
     public function testSelect01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
         $sql         = 'SELECT * FROM test.customers';
@@ -107,7 +94,7 @@ ALTER TABLE ONLY customers
      */
     public function testInsert01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
         $sql         = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
@@ -159,7 +146,7 @@ ALTER TABLE ONLY customers
      */
     public function testInsert01el()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
         $sql         = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
@@ -215,7 +202,7 @@ ALTER TABLE ONLY customers
      */
     public function testUpdate01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
         $sql         = 'UPDATE test.customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
@@ -264,7 +251,7 @@ ALTER TABLE ONLY customers
      */
     public function testUpdate01el()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
         $sql         = 'UPDATE test.customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
@@ -317,7 +304,7 @@ ALTER TABLE ONLY customers
      */
     public function testDelete01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
         $sql         = 'DELETE FROM test.customers WHERE id IN (?,?)';
@@ -350,7 +337,7 @@ ALTER TABLE ONLY customers
      */
     public function testTransactions01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
 
@@ -387,7 +374,7 @@ ALTER TABLE ONLY customers
      */
     public function testTransactions02()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
 
@@ -439,7 +426,7 @@ ALTER TABLE ONLY customers
      */
     public function testTransactions03()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
 
@@ -478,7 +465,7 @@ ALTER TABLE ONLY customers
      */
     public function testTransactions04()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
 

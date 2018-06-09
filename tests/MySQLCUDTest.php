@@ -9,8 +9,6 @@ final class MySQLCUDTest extends TestCase
 {
     protected static $db;
 
-    protected static $mc;
-
     ////////////////////////////////////////////////////////////////////
     // Basic setup - it runs once in Class                            //
     ////////////////////////////////////////////////////////////////////
@@ -24,18 +22,7 @@ final class MySQLCUDTest extends TestCase
             'db_name'   => $GLOBALS['MYSQL_DBNAME'],
         ];
 
-        self::$mc = [
-            'mc_pool'       => [
-                [
-                    'mc_server' => '127.0.0.1',
-                    'mc_port'   => '11211',
-                    'mc_weight' => 0,
-                ],
-            ],
-            'use_memcached' => true,
-        ];
-
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
 
         $sql = 'DROP TABLE IF EXISTS `customers`;
 CREATE TABLE `customers` (
@@ -57,7 +44,7 @@ CREATE TABLE `customers` (
     public static function tearDownAfterClass()
     {
         if (1 === (int) $GLOBALS['MYSQL_DROP_TABLES_CREATED_FOR_UPDATE']) {
-            $ds  = new Dacapo(self::$db, self::$mc);
+            $ds  = new Dacapo(self::$db);
             $sql = 'DROP TABLE IF EXISTS `customers`;';
             $ds->execute($sql);
         }
@@ -68,7 +55,7 @@ CREATE TABLE `customers` (
     ////////////////////////////////////////////////////////////////////
     public function testSelect01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $sql         = 'SELECT * FROM customers';
         $bind_params = [];
@@ -88,7 +75,7 @@ CREATE TABLE `customers` (
      */
     public function testInsert01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
         $bind_params = [
@@ -139,7 +126,7 @@ CREATE TABLE `customers` (
      */
     public function testInsert01el()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
         $bind_params = [
@@ -194,7 +181,7 @@ CREATE TABLE `customers` (
      */
     public function testUpdate01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $sql         = 'UPDATE customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
         $bind_params = [
@@ -242,7 +229,7 @@ CREATE TABLE `customers` (
      */
     public function testUpdate01el()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $sql         = 'UPDATE customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
         $bind_params = [
@@ -294,7 +281,7 @@ CREATE TABLE `customers` (
      */
     public function testDelete01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $sql         = 'DELETE FROM customers WHERE id IN (?,?)';
         $bind_params = [
@@ -326,7 +313,7 @@ CREATE TABLE `customers` (
      */
     public function testTransactions01()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
 
         $ds->beginTrans();
@@ -362,7 +349,7 @@ CREATE TABLE `customers` (
      */
     public function testTransactions02()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
 
         $ds->beginTrans();
@@ -413,7 +400,7 @@ CREATE TABLE `customers` (
      */
     public function testTransactions03()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
 
         try {
@@ -451,7 +438,7 @@ CREATE TABLE `customers` (
      */
     public function testTransactions04()
     {
-        $ds = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db);
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
 
         try {

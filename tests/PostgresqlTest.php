@@ -31,8 +31,6 @@ final class PostgresqlTest extends TestCase
 
     protected static $db_wrong_dbname_with_server_ip;
 
-    protected static $mc;
-
     ////////////////////////////////////////////////////////////////////
     // Basic setup - it runs once in Class                            //
     ////////////////////////////////////////////////////////////////////
@@ -75,17 +73,6 @@ final class PostgresqlTest extends TestCase
 
         self::$db_wrong_dbname_with_server_ip            = self::$db_with_server_ip;
         self::$db_wrong_dbname_with_server_ip['db_name'] = $GLOBALS['POSTGRES_DBNAME_WRONG'];
-
-        self::$mc = [
-            'mc_pool'       => [
-                [
-                    'mc_server' => '127.0.0.1',
-                    'mc_port'   => '11211',
-                    'mc_weight' => 0,
-                ],
-            ],
-            'use_memcached' => true,
-        ];
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -93,7 +80,7 @@ final class PostgresqlTest extends TestCase
     ////////////////////////////////////////////////////////////////////
     public function testInstance01()
     {
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
 
         $this->assertInstanceOf(
             Dacapo::class,
@@ -103,7 +90,7 @@ final class PostgresqlTest extends TestCase
 
     public function testInstance02()
     {
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
 
         $this->assertInstanceOf(
             Dacapo::class,
@@ -115,7 +102,7 @@ final class PostgresqlTest extends TestCase
     {
         $this->expectException(Exception::class);
         $this->expectExceptionMessage(Dacapo::ERROR_RDBMS_NOT_SUPPORTED);
-        $ds = new Dacapo(self::$db_wrong_rdbms, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_rdbms);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -123,7 +110,7 @@ final class PostgresqlTest extends TestCase
     ////////////////////////////////////////////////////////////////////
     public function testConnect01()
     {
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
 
         $this->assertInstanceOf(
             Dacapo::class,
@@ -135,7 +122,7 @@ final class PostgresqlTest extends TestCase
             get_resource_type($ds->dbConnect())
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT']);
 
         $this->assertInstanceOf(
@@ -148,7 +135,7 @@ final class PostgresqlTest extends TestCase
             get_resource_type($ds->dbConnect())
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
 
         $this->assertInstanceOf(
@@ -164,7 +151,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnect02()
     {
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
 
         $this->assertInstanceOf(
             Dacapo::class,
@@ -176,7 +163,7 @@ final class PostgresqlTest extends TestCase
             get_resource_type($ds->dbConnect())
         );
 
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
         $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT']);
 
         $this->assertInstanceOf(
@@ -189,7 +176,7 @@ final class PostgresqlTest extends TestCase
             get_resource_type($ds->dbConnect())
         );
 
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
 
         $this->assertInstanceOf(
@@ -210,7 +197,7 @@ final class PostgresqlTest extends TestCase
      */
     public function testConnectFails01()
     {
-        $ds = new Dacapo(self::$db_wrong_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_server_name);
         $ds->setPgConnectTimout((int) $GLOBALS['POSTGRES_PG_CONNECT_TIMOUT']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
@@ -218,7 +205,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails01a()
     {
-        $ds = new Dacapo(self::$db_wrong_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_server_name);
         $ds->setPgConnectTimout((int) $GLOBALS['POSTGRES_PG_CONNECT_TIMOUT']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
@@ -232,7 +219,7 @@ final class PostgresqlTest extends TestCase
      */
     public function testConnectFails02()
     {
-        $ds = new Dacapo(self::$db_wrong_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_server_ip);
         $ds->setPgConnectTimout((int) $GLOBALS['POSTGRES_PG_CONNECT_TIMOUT']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
@@ -240,7 +227,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails02a()
     {
-        $ds = new Dacapo(self::$db_wrong_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_server_ip);
         $ds->setPgConnectTimout((int) $GLOBALS['POSTGRES_PG_CONNECT_TIMOUT']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
@@ -249,14 +236,14 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails03()
     {
-        $ds = new Dacapo(self::$db_wrong_user_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_user_with_server_name);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails03a()
     {
-        $ds = new Dacapo(self::$db_wrong_user_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_user_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -264,14 +251,14 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails04()
     {
-        $ds = new Dacapo(self::$db_wrong_user_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_user_with_server_ip);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails04a()
     {
-        $ds = new Dacapo(self::$db_wrong_user_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_user_with_server_ip);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -279,14 +266,14 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails05()
     {
-        $ds = new Dacapo(self::$db_wrong_passwd_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_name);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails05a()
     {
-        $ds = new Dacapo(self::$db_wrong_passwd_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -294,14 +281,14 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails06()
     {
-        $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails06a()
     {
-        $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_passwd_with_server_ip);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -309,14 +296,14 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails07()
     {
-        $ds = new Dacapo(self::$db_wrong_dbname_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_name);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails07a()
     {
-        $ds = new Dacapo(self::$db_wrong_dbname_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -324,14 +311,14 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails08()
     {
-        $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
     }
 
     public function testConnectFails08a()
     {
-        $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_wrong_dbname_with_server_ip);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
         $ds->dbConnect();
@@ -339,7 +326,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails09()
     {
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
@@ -347,7 +334,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails09a()
     {
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
@@ -356,7 +343,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails10()
     {
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
         $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $this->expectException(DacapoErrorException::class);
         $ds->dbConnect();
@@ -364,7 +351,7 @@ final class PostgresqlTest extends TestCase
 
     public function testConnectFails10a()
     {
-        $ds = new Dacapo(self::$db_with_server_ip, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_ip);
         $ds->setDbPort((int) $GLOBALS['POSTGRES_PORT_WRONG']);
         $ds->setUseDacapoErrorHandler(false);
         $this->expectException(Warning::class);
@@ -376,7 +363,7 @@ final class PostgresqlTest extends TestCase
     ////////////////////////////////////////////////////////////////////
     public function testSelect01()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $sql           = 'SELECT * FROM test.customers_en';
         $bind_params   = [];
@@ -386,7 +373,7 @@ final class PostgresqlTest extends TestCase
             $ds->getNumRows()
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql           = 'SELECT * FROM customers_en';
@@ -400,7 +387,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelect01el()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $sql           = 'SELECT * FROM test.customers_el';
         $bind_params   = [];
@@ -410,7 +397,7 @@ final class PostgresqlTest extends TestCase
             $ds->getNumRows()
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
         $sql           = 'SELECT * FROM customers_el';
@@ -424,7 +411,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelect02()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setPgConnectForceNew(true);
         $sql           = 'SELECT lastname FROM test.customers_en WHERE id=?';
@@ -436,7 +423,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setPgConnectForceNew(true);
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
@@ -449,7 +436,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setPgConnectForceNew(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -462,7 +449,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setPgConnectForceNew(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET_WRONG']);
@@ -479,7 +466,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelect02el()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setPgConnectForceNew(true);
         $sql           = 'SELECT lastname FROM test.customers_el WHERE id=?';
@@ -491,7 +478,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setPgConnectForceNew(true);
         $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
@@ -504,7 +491,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setPgConnectForceNew(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -517,7 +504,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setPgConnectForceNew(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -531,7 +518,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setPgConnectForceNew(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET_WRONG']);
@@ -549,7 +536,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setFetchRow(true);
         $ds->setPgConnectForceNew(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET_WRONG']);
@@ -571,7 +558,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelect03()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -585,7 +572,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -600,7 +587,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -614,7 +601,7 @@ final class PostgresqlTest extends TestCase
             $row[0]
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -629,7 +616,7 @@ final class PostgresqlTest extends TestCase
             $row[0]
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -647,7 +634,7 @@ final class PostgresqlTest extends TestCase
             $row[0]
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -669,7 +656,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelect03el()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -683,7 +670,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -698,7 +685,7 @@ final class PostgresqlTest extends TestCase
             $row['lastname']
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -712,7 +699,7 @@ final class PostgresqlTest extends TestCase
             $row[0]
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -727,7 +714,7 @@ final class PostgresqlTest extends TestCase
             $row[0]
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -745,7 +732,7 @@ final class PostgresqlTest extends TestCase
             $row[0]
         );
 
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setFetchRow(true);
         $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
@@ -767,7 +754,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelectFails01()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $sql           = 'SELECT * FROM test.customers_xx';
         $bind_params   = [];
@@ -777,7 +764,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelectFails01a()
     {
-        $ds = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setUseDacapoErrorHandler(false);
         $sql           = 'SELECT * FROM test.customers_xx';
@@ -788,7 +775,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelectFails02()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $sql           = 'SELECT * FROM test.customers_en WHERE wrong_column=?';
         $bind_params   = [1];
@@ -798,7 +785,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelectFails02a()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setUseDacapoErrorHandler(false);
         $sql           = 'SELECT * FROM test.customers_en WHERE wrong_column=?';
@@ -809,7 +796,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelectFails03()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $sql           = 'SELECT * FROM test.customers_en WHERE id=?';
         $bind_params   = [1, 2];
@@ -819,7 +806,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelectFails03a()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setUseDacapoErrorHandler(false);
         $sql           = 'SELECT * FROM test.customers_en WHERE id=?';
@@ -830,7 +817,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelectFails04()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $sql           = 'SELECT * FROM test.customers_en WHERE id=? AND lastname=?';
         $bind_params   = [1];
@@ -840,7 +827,7 @@ final class PostgresqlTest extends TestCase
 
     public function testSelectFails04a()
     {
-        $ds            = new Dacapo(self::$db_with_server_name, self::$mc);
+        $ds            = new Dacapo(self::$db_with_server_name);
         $ds->setPgConnectForceNew(true);
         $ds->setUseDacapoErrorHandler(false);
         $sql           = 'SELECT * FROM test.customers_en WHERE id=? AND lastname=?';

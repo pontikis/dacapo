@@ -108,81 +108,85 @@ class Dacapo
      *
      * @throws Exception
      */
-    public function __construct(array $a_db, array $a_mc)
-    {
+    public function __construct(
+        array $a_db = [],
+        array $a_mc = []
+    ) {
         // error handler -------------------------------------------------------
         $this->use_dacapo_error_handler = true;
 
         // connection params ---------------------------------------------------
-        $this->rdbms = $a_db['rdbms'];
+        if (array_key_exists('rdbms', $a_db)) {
+            $this->rdbms = $a_db['rdbms'];
 
-        // RDBMS not supported
-        if (false === in_array($this->rdbms, [self::RDBMS_MYSQLI, self::RDBMS_POSTGRES])) {
-            throw new Exception(self::ERROR_RDBMS_NOT_SUPPORTED);
+            // RDBMS not supported
+            if (false === in_array($this->rdbms, [self::RDBMS_MYSQLI, self::RDBMS_POSTGRES])) {
+                throw new Exception(self::ERROR_RDBMS_NOT_SUPPORTED);
+            }
+
+            $this->conn = null;
+
+            $this->db_server = array_key_exists('db_server', $a_db) ? $a_db['db_server'] : null;
+            $this->db_name   = array_key_exists('db_name', $a_db) ? $a_db['db_name'] : null;
+            $this->db_user   = array_key_exists('db_user', $a_db) ? $a_db['db_user'] : null;
+            $this->db_passwd = array_key_exists('db_passwd', $a_db) ? $a_db['db_passwd'] : null;
+
+            if (null === $this->db_server) {
+                throw new Exception(self::ERROR_DBSERVER_IS_REQUIRED);
+            }
+
+            if (null === $this->db_name) {
+                throw new Exception(self::ERROR_DBNAME_IS_REQUIRED);
+            }
+
+            if (null === $this->db_user) {
+                throw new Exception(self::ERROR_DBUSER_IS_REQUIRED);
+            }
+
+            if (null === $this->db_passwd) {
+                throw new Exception(self::ERROR_DBPASSWD_IS_REQUIRED);
+            }
+
+            // optional connection params
+            $this->db_port              = null;
+            $this->charset              = null;
+            $this->pg_connect_timeout   = null;
+            $this->pg_connect_force_new = false;
+
+            // query params ----------------------------------------------------
+            $this->query_type      = null;
+            $this->db_schema       = null;
+            $this->sql_placeholder = self::DEFAULT_SQL_PLACEHOLDER;
+
+            switch ($this->rdbms) {
+                case self::RDBMS_MYSQLI:
+                    $this->pst_placeholder = self::PREPARED_STATEMENTS_QUESTION_MARK;
+                    $this->fetch_type      = MYSQLI_ASSOC;
+                    break;
+                case self::RDBMS_POSTGRES:
+                    $this->pst_placeholder = self::PREPARED_STATEMENTS_NUMBERED;
+                    $this->fetch_type      = PGSQL_ASSOC;
+                    break;
+            }
+
+            $this->sql = null;
+
+            // Bind parameters. Types: s = string, i = integer, d = double,  b = blob
+            $this->a_types = [
+                'string'  => 's',
+                'integer' => 'i',
+                'double'  => 'd',
+                'boolean' => 'i', // avoid boolean in params, use integer instead (1,0)
+                'NULL'    => 's', // do not need to cast null to a particular data type
+            ];
+
+            $this->data               = null;
+            $this->num_rows           = null;
+            $this->fetch_row          = false;
+            $this->insert_id          = null;
+            $this->affected_rows      = null;
+            $this->pg_insert_sequence = self::PG_SEQUENCE_NAME_AUTO;
         }
-
-        $this->conn = null;
-
-        $this->db_server = array_key_exists('db_server', $a_db) ? $a_db['db_server'] : null;
-        $this->db_name   = array_key_exists('db_name', $a_db) ? $a_db['db_name'] : null;
-        $this->db_user   = array_key_exists('db_user', $a_db) ? $a_db['db_user'] : null;
-        $this->db_passwd = array_key_exists('db_passwd', $a_db) ? $a_db['db_passwd'] : null;
-
-        if (null === $this->db_server) {
-            throw new Exception(self::ERROR_DBSERVER_IS_REQUIRED);
-        }
-
-        if (null === $this->db_name) {
-            throw new Exception(self::ERROR_DBNAME_IS_REQUIRED);
-        }
-
-        if (null === $this->db_user) {
-            throw new Exception(self::ERROR_DBUSER_IS_REQUIRED);
-        }
-
-        if (null === $this->db_passwd) {
-            throw new Exception(self::ERROR_DBPASSWD_IS_REQUIRED);
-        }
-
-        // optional connection params
-        $this->db_port              = null;
-        $this->charset              = null;
-        $this->pg_connect_timeout   = null;
-        $this->pg_connect_force_new = false;
-
-        // query params --------------------------------------------------------
-        $this->query_type      = null;
-        $this->db_schema       = null;
-        $this->sql_placeholder = self::DEFAULT_SQL_PLACEHOLDER;
-
-        switch ($this->rdbms) {
-            case self::RDBMS_MYSQLI:
-                $this->pst_placeholder = self::PREPARED_STATEMENTS_QUESTION_MARK;
-                $this->fetch_type      = MYSQLI_ASSOC;
-                break;
-            case self::RDBMS_POSTGRES:
-                $this->pst_placeholder = self::PREPARED_STATEMENTS_NUMBERED;
-                $this->fetch_type      = PGSQL_ASSOC;
-                break;
-        }
-
-        $this->sql = null;
-
-        // Bind parameters. Types: s = string, i = integer, d = double,  b = blob
-        $this->a_types = [
-            'string'  => 's',
-            'integer' => 'i',
-            'double'  => 'd',
-            'boolean' => 'i', // avoid boolean in params, use integer instead (1,0)
-            'NULL'    => 's', // do not need to cast null to a particular data type
-        ];
-
-        $this->data               = null;
-        $this->num_rows           = null;
-        $this->fetch_row          = false;
-        $this->insert_id          = null;
-        $this->affected_rows      = null;
-        $this->pg_insert_sequence = self::PG_SEQUENCE_NAME_AUTO;
 
         // memcached params ----------------------------------------------------
         $this->mc_settings = $a_mc;
@@ -699,31 +703,29 @@ class Dacapo
     /**
      * Initialize memcached and add server(s) to cache pool.
      *
-     * @return object Memcached 'connection'
+     * @return Memcached|null
      */
     public function mc_init()
     {
         if (null === $this->mc) {
-            if (extension_loaded('memcached')) {
-                $mc_settings = $this->mc_settings;
+            $mc_settings = $this->mc_settings;
 
-                $mc_items = 0;
-                $mc       = new \Memcached();
-                foreach ($mc_settings['mc_pool'] as $mc_item) {
-                    if (array_key_exists('weight', $mc_item)) {
-                        $res_mc = $mc->addServer($mc_item['mc_server'], $mc_item['mc_port'], $mc_item['weight']);
-                    } else {
-                        $res_mc = $mc->addServer($mc_item['mc_server'], $mc_item['mc_port']);
-                    }
-                    if ($res_mc) {
-                        ++$mc_items;
-                    }
+            $mc_items = 0;
+            $mc       = new \Memcached();
+            foreach ($mc_settings['mc_pool'] as $mc_item) {
+                if (array_key_exists('weight', $mc_item)) {
+                    $res_mc = $mc->addServer($mc_item['mc_server'], $mc_item['mc_port'], $mc_item['weight']);
+                } else {
+                    $res_mc = $mc->addServer($mc_item['mc_server'], $mc_item['mc_port']);
                 }
-                if (0 == $mc_items) {
-                    $mc = null;
+                if ($res_mc) {
+                    ++$mc_items;
                 }
-                $this->mc = $mc;
             }
+            if (0 == $mc_items) {
+                $mc = null;
+            }
+            $this->mc = $mc;
         }
 
         return $this->mc;

@@ -286,6 +286,12 @@ In this case PHP_Invoker is needed https://github.com/sebastianbergmann/php-invo
 ./vendor/bin/phpunit  --configuration tests/phpunit.xml tests/PostgresqlCUDTest.php
 ```
 
+### Memcached tests
+
+```
+./vendor/bin/phpunit --configuration tests/phpunit.xml tests/MemcachedTest.php
+```
+
 ### Run certain test eg testConnectFails1()
 
 ```
@@ -299,4 +305,6 @@ Contribution
 
 Your contribution is welcomed.
 
-Pull requests are accepted only in `dev` branch. Remember to also submit the relevant PHPUnit tests. Review is always required.
+* Pull requests are accepted only in `dev` branch. 
+* Remember to also submit the relevant PHPUnit tests. 
+* Review is always required.
