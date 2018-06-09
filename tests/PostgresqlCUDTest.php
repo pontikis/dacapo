@@ -102,6 +102,8 @@ ALTER TABLE ONLY customers
     /**
      * Note the difference (from mysqli::fetch_array) in pg_query_params: it return string values
      * even in numeric columns.
+     *
+     * @depends testSelect01
      */
     public function testInsert01()
     {
@@ -152,6 +154,9 @@ ALTER TABLE ONLY customers
         );
     }
 
+    /**
+     * @depends testInsert01
+     */
     public function testInsert01el()
     {
         $ds = new Dacapo(self::$db, self::$mc);
@@ -204,6 +209,10 @@ ALTER TABLE ONLY customers
     ////////////////////////////////////////////////////////////////////
     // Test update                                                    //
     ////////////////////////////////////////////////////////////////////
+
+    /**
+     * @depends testInsert01
+     */
     public function testUpdate01()
     {
         $ds            = new Dacapo(self::$db, self::$mc);
@@ -250,6 +259,9 @@ ALTER TABLE ONLY customers
         );
     }
 
+    /**
+     * @depends testInsert01el
+     */
     public function testUpdate01el()
     {
         $ds            = new Dacapo(self::$db, self::$mc);
@@ -298,6 +310,11 @@ ALTER TABLE ONLY customers
     ////////////////////////////////////////////////////////////////////
     // Test delete                                                    //
     ////////////////////////////////////////////////////////////////////
+
+    /**
+     * @depends testInsert01
+     * @depends testInsert01el
+     */
     public function testDelete01()
     {
         $ds            = new Dacapo(self::$db, self::$mc);
@@ -320,6 +337,100 @@ ALTER TABLE ONLY customers
         $this->assertSame(
             0,
             $ds->getNumRows()
+        );
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    // Test transactions                                              //
+    ////////////////////////////////////////////////////////////////////
+
+    /**
+     * @depends testInsert01
+     * @depends testInsert01el
+     */
+    public function testTransactions01()
+    {
+        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+        $ds->setPgConnectForceNew(true);
+
+        $ds->beginTrans();
+
+        $sql           = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params   = [
+            'Fowler',
+            'Jeremy',
+            1,
+            '23 Dottie Trail, Virginia, 20189, United States',
+        ];
+        $ds->insert($sql, $bind_params);
+
+        $ds->rollbackTrans();
+
+        $sql           = 'SELECT * FROM test.customers WHERE lastname=? AND firstname=?';
+        $bind_params   = [
+            'Fowler',
+            'Jeremy',
+        ];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            0,
+            $ds->getNumRows()
+        );
+    }
+
+    /**
+     * @depends testInsert01
+     * @depends testInsert01el
+     * @depends testTransactions01
+     */
+    public function testTransactions02()
+    {
+        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+        $ds->setPgConnectForceNew(true);
+
+        $ds->beginTrans();
+
+        $sql           = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params   = [
+            'Fowler',
+            'Jeremy',
+            1,
+            '23 Dottie Trail, Virginia, 20189, United States',
+        ];
+        $ds->insert($sql, $bind_params);
+
+        $ds->commitTrans();
+
+        $ds->setFetchRow(true);
+        $sql           = 'SELECT * FROM test.customers WHERE lastname=? AND firstname=?';
+        $bind_params   = [
+            'Fowler',
+            'Jeremy',
+        ];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            4,
+            (int) $row['id']
+        );
+        $this->assertSame(
+            'Fowler',
+            $row['lastname']
+        );
+        $this->assertSame(
+            'Jeremy',
+            $row['firstname']
+        );
+        $this->assertSame(
+            1,
+            (int) $row['gender']
+        );
+        $this->assertSame(
+            '23 Dottie Trail, Virginia, 20189, United States',
+            $row['address']
         );
     }
 }

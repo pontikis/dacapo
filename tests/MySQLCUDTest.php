@@ -342,8 +342,11 @@ CREATE TABLE `customers` (
 
         $ds->rollbackTrans();
 
-        $sql           = 'SELECT * FROM customers WHERE id=?';
-        $bind_params   = [3];
+        $sql           = 'SELECT * FROM customers WHERE lastname=? AND firstname=?';
+        $bind_params   = [
+            'Fowler',
+            'Jeremy',
+        ];
         $ds->select($sql, $bind_params);
         $row = $ds->getData();
         $this->assertSame(
