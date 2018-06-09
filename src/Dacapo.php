@@ -597,8 +597,7 @@ class Dacapo
 
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
-                // switch autocommit status to FALSE. Actually, it starts transaction
-                $conn->autocommit(false);
+                $conn->begin_transaction();
                 break;
             case self::RDBMS_POSTGRES:
                 pg_query($conn, 'BEGIN');
@@ -620,7 +619,6 @@ class Dacapo
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
                 $conn->commit();
-                $conn->autocommit(true);
                 break;
             case self::RDBMS_POSTGRES:
                 pg_query($conn, 'COMMIT');
@@ -642,7 +640,6 @@ class Dacapo
         switch ($this->rdbms) {
             case self::RDBMS_MYSQLI:
                 $conn->rollback();
-                $conn->autocommit(true);
                 break;
             case self::RDBMS_POSTGRES:
                 pg_query($conn, 'ROLLBACK');

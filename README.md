@@ -257,6 +257,8 @@ First copy `phpunit.dest.xml` to `phpunit.xml`
 
 ### MySQL tests
 
+## Test `connect` and `select`
+
 ```
 ./vendor/bin/phpunit --configuration tests/phpunit.xml tests/MySQLTest.php
 ```
@@ -269,10 +271,24 @@ mysqli timout make some tests slow. Run them once and then use:
 
 In this case PHP_Invoker is needed https://github.com/sebastianbergmann/php-invoker
 
+## CUD tests Insert (C) Update (U) and Delete (D) operations and Transactions
+
+```
+./vendor/bin/phpunit --configuration tests/phpunit.xml tests/MySQLCUDTest.php
+```
+
 ### Postgres tests
+
+## Test `connect` and `select`
 
 ```
 ./vendor/bin/phpunit  --configuration tests/phpunit.xml tests/PostgresqlTest.php
+```
+
+## CUD tests Insert (C) Update (U) and Delete (D) operations and Transactions
+
+```
+./vendor/bin/phpunit  --configuration tests/phpunit.xml tests/PostgresqlCUDTest.php
 ```
 
 ### Run certain test eg testConnectFails1()
@@ -280,3 +296,12 @@ In this case PHP_Invoker is needed https://github.com/sebastianbergmann/php-invo
 ```
 ./vendor/bin/phpunit  --configuration tests/phpunit.xml tests/PostgresqlTest.php --filter '/testConnectFails1$/'
 ```
+
+You cannot use `--filter` with *CUD* tests. Actually every *CUD* test depends on previous.
+
+Contribution
+------------
+
+Your contribution is welcomed.
+
+Pull requests are accepted only in `dev` branch. Remember to also submit the relevant PHPUnit tests. Review is always required.

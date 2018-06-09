@@ -69,19 +69,22 @@ ALTER TABLE ONLY customers
     ////////////////////////////////////////////////////////////////////
     public static function tearDownAfterClass()
     {
-        $ds  = new Dacapo(self::$db, self::$mc);
-        $ds->setPgConnectForceNew(true);
-        $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
-        $sql = 'DROP TABLE IF EXISTS customers CASCADE;';
-        $ds->execute($sql);
+        if (1 === (int) $GLOBALS['POSTGRES_DROP_TABLES_CREATED_FOR_UPDATE']) {
+            $ds = new Dacapo(self::$db, self::$mc);
+            $ds->setPgConnectForceNew(true);
+            $ds->setDbSchema($GLOBALS['POSTGRES_DBSCHEMA']);
+            $sql = 'DROP TABLE IF EXISTS customers CASCADE;';
+            $ds->execute($sql);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////
-    // Test instance                                                  //
+    // Test select                                                    //
     ////////////////////////////////////////////////////////////////////
     public function testSelect01()
     {
-        $ds          = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
         $sql         = 'SELECT * FROM test.customers';
         $bind_params = [];
@@ -92,26 +95,39 @@ ALTER TABLE ONLY customers
         );
     }
 
+    ////////////////////////////////////////////////////////////////////
+    // Test insert                                                    //
+    ////////////////////////////////////////////////////////////////////
+
     /**
      * Note the difference (from mysqli::fetch_array) in pg_query_params: it return string values
      * even in numeric columns.
      */
     public function testInsert01()
     {
-        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
         $ds->setPgConnectForceNew(true);
-        $sql           = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
-        $bind_params   = [
+        $sql         = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params = [
             'Robertson',
             'Jerry',
             1,
             '01173 Doe Crossing Hill, Texas, 77346, United States',
         ];
         $ds->insert($sql, $bind_params);
+        $this->assertSame(
+            1,
+            (int) $ds->getInsertId()
+        );
+        $this->assertSame(
+            1,
+            $ds->getAffectedRows()
+        );
 
         $ds->setFetchRow(true);
-        $sql           = 'SELECT * FROM test.customers WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT * FROM test.customers WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
         $row = $ds->getData();
         $this->assertSame(
@@ -133,6 +149,177 @@ ALTER TABLE ONLY customers
         $this->assertSame(
             '01173 Doe Crossing Hill, Texas, 77346, United States',
             $row['address']
+        );
+    }
+
+    public function testInsert01el()
+    {
+        $ds = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+        $ds->setPgConnectForceNew(true);
+        $sql         = 'INSERT INTO test.customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params = [
+            'Γεωργίου',
+            'Γεώργιος',
+            1,
+            'Γεωργίου Σεφέρη 35, Νεάπολη Συκεές, 567 28, Θεσσαλονίκη, Ελλάδα',
+        ];
+        $ds->insert($sql, $bind_params);
+        $this->assertSame(
+            2,
+            (int) $ds->getInsertId()
+        );
+        $this->assertSame(
+            1,
+            $ds->getAffectedRows()
+        );
+
+        $ds->setFetchRow(true);
+        $sql         = 'SELECT * FROM test.customers WHERE id=?';
+        $bind_params = [2];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            2,
+            (int) $row['id']
+        );
+        $this->assertSame(
+            'Γεωργίου',
+            $row['lastname']
+        );
+        $this->assertSame(
+            'Γεώργιος',
+            $row['firstname']
+        );
+        $this->assertSame(
+            1,
+            (int) $row['gender']
+        );
+        $this->assertSame(
+            'Γεωργίου Σεφέρη 35, Νεάπολη Συκεές, 567 28, Θεσσαλονίκη, Ελλάδα',
+            $row['address']
+        );
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    // Test update                                                    //
+    ////////////////////////////////////////////////////////////////////
+    public function testUpdate01()
+    {
+        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+        $ds->setPgConnectForceNew(true);
+        $sql           = 'UPDATE test.customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
+        $bind_params   = [
+            'Wallace',
+            'Craig',
+            1,
+            '01173 Doe Crossing Hill, Texas, 77346, United States',
+            1,
+        ];
+        $ds->update($sql, $bind_params);
+        $this->assertSame(
+            1,
+            $ds->getAffectedRows()
+        );
+
+        $ds->setFetchRow(true);
+        $sql           = 'SELECT * FROM test.customers WHERE id=?';
+        $bind_params   = [1];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            1,
+            (int) $row['id']
+        );
+        $this->assertSame(
+            'Wallace',
+            $row['lastname']
+        );
+        $this->assertSame(
+            'Craig',
+            $row['firstname']
+        );
+        $this->assertSame(
+            1,
+            (int) $row['gender']
+        );
+        $this->assertSame(
+            '01173 Doe Crossing Hill, Texas, 77346, United States',
+            $row['address']
+        );
+    }
+
+    public function testUpdate01el()
+    {
+        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+        $ds->setPgConnectForceNew(true);
+        $sql           = 'UPDATE test.customers SET lastname = ?, firstname = ?, gender = ?, address = ? WHERE id = ?';
+        $bind_params   = [
+            'Γεωργόπουλος',
+            'Βασίλειος',
+            1,
+            null,
+            2,
+        ];
+        $ds->update($sql, $bind_params);
+        $this->assertSame(
+            1,
+            $ds->getAffectedRows()
+        );
+
+        $ds->setFetchRow(true);
+        $sql           = 'SELECT * FROM test.customers WHERE id=?';
+        $bind_params   = [2];
+        $ds->select($sql, $bind_params);
+        $row = $ds->getData();
+        $this->assertSame(
+            2,
+            (int) $row['id']
+        );
+        $this->assertSame(
+            'Γεωργόπουλος',
+            $row['lastname']
+        );
+        $this->assertSame(
+            'Βασίλειος',
+            $row['firstname']
+        );
+        $this->assertSame(
+            1,
+            (int) $row['gender']
+        );
+        $this->assertNull(
+            $row['address']
+        );
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    // Test delete                                                    //
+    ////////////////////////////////////////////////////////////////////
+    public function testDelete01()
+    {
+        $ds            = new Dacapo(self::$db, self::$mc);
+        $ds->setCharset($GLOBALS['POSTGRES_CHARSET']);
+        $ds->setPgConnectForceNew(true);
+        $sql           = 'DELETE FROM test.customers WHERE id IN (?,?)';
+        $bind_params   = [
+            1,
+            2,
+        ];
+        $ds->delete($sql, $bind_params);
+        $this->assertSame(
+            2,
+            $ds->getAffectedRows()
+        );
+
+        $sql           = 'SELECT * FROM test.customers';
+        $bind_params   = [];
+        $ds->select($sql, $bind_params);
+        $this->assertSame(
+            0,
+            $ds->getNumRows()
         );
     }
 }
