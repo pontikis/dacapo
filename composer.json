@@ -1,7 +1,7 @@
 {
     "name": "pontikis/dacapo",
-    "description": "Dacapo - Simple PHP database and memcached wrapper",
-    "keywords": ["php", "mysql", "mariadb", "postgresql", "database", "memcached"],
+    "description": "Dacapo - Simple PHP database wrapper",
+    "keywords": ["php", "mysql", "mariadb", "postgresql", "database", "wrapper"],
     "homepage": "https://github.com/pontikis/dacapo",
     "type": "library",
     "license": "MIT",

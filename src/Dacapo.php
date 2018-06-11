@@ -8,7 +8,7 @@ use ErrorException;
 use Exception;
 
 /**
- * Da Capo class (Simple PHP database and memcached wrapper).
+ * Da Capo class (Simple PHP database wrapper).
  *
  * Supported RDMBS: MySQLi, POSTGRESQL
  * For MYSQLi SELECT prepared statements, mysqlnd is required
@@ -19,7 +19,7 @@ use Exception;
  * @copyright  Christos Pontikis
  * @license    http://opensource.org/licenses/MIT
  *
- * @version    1.0.0 (XX Jun 2018)
+ * @version    1.0.0 (11 Jun 2018)
  */
 class Dacapo
 {
@@ -96,22 +96,15 @@ class Dacapo
     /** @var int number of affected rows in UPDATE, INSERT, DELETE statements */
     private $affected_rows;
 
-    // memcached params --------------------------------------------------------
-    private $mc_settings;
-    private $mc;
-
     /**
      * Constructor.
      *
      * @param array $a_db database settings
-     * @param array $a_mc memcached settings
      *
      * @throws Exception
      */
-    public function __construct(
-        array $a_db = [],
-        array $a_mc = []
-    ) {
+    public function __construct(array $a_db)
+    {
         // error handler -------------------------------------------------------
         $this->use_dacapo_error_handler = true;
 
@@ -187,10 +180,6 @@ class Dacapo
             $this->affected_rows      = null;
             $this->pg_insert_sequence = self::PG_SEQUENCE_NAME_AUTO;
         }
-
-        // memcached params ----------------------------------------------------
-        $this->mc_settings = $a_mc;
-        $this->mc          = null;
     }
 
     // error handler -----------------------------------------------------------
@@ -696,93 +685,6 @@ class Dacapo
             case self::RDBMS_POSTGRES:
                 return 'LIMIT ' . $row_count . ' OFFSET ' . $offset;
         }
-    }
-
-    // memcached ---------------------------------------------------------------
-
-    /**
-     * Initialize memcached and add server(s) to cache pool.
-     *
-     * @return Memcached|null
-     */
-    public function mcInit()
-    {
-        if (null === $this->mc) {
-            $mc_settings = $this->mc_settings;
-
-            $mc_items = 0;
-            $mc       = new \Memcached();
-            foreach ($mc_settings['mc_pool'] as $mc_item) {
-                if (array_key_exists('weight', $mc_item)) {
-                    $res_mc = $mc->addServer($mc_item['mc_server'], (int) $mc_item['mc_port'], (int) $mc_item['weight']);
-                } else {
-                    $res_mc = $mc->addServer($mc_item['mc_server'], (int) $mc_item['mc_port']);
-                }
-                if ($res_mc) {
-                    ++$mc_items;
-                }
-            }
-            if (0 == $mc_items) {
-                $mc = null;
-            }
-            $this->mc = $mc;
-        }
-
-        return $this->mc;
-    }
-
-    /**
-     * Pull from memcached.
-     *
-     * @param string $key the key to search
-     *
-     * @return mixed the value for key (false if not found)
-     */
-    public function pullFromMemcached($key)
-    {
-        $val = false;
-        $mc  = $this->mcInit();
-        if (null !== $mc) {
-            $val = $mc->get($key);
-        }
-
-        return $val;
-    }
-
-    /**
-     * Push to memcached.
-     *
-     * @param string $key the key to search
-     * @param mixed  $val the value of the key
-     * @param int    $exp seconds to expire
-     *
-     * @return array ('code' => ResultCode, 'msg' => ResultMessage)
-     */
-    public function pushToMemcached($key, $val, $exp = 0)
-    {
-        $mc = $this->mcInit();
-        if (null !== $mc) {
-            $mc->set($key, $val, $exp);
-        }
-
-        return ['code' => $mc->getResultCode(), 'msg' => $mc->getResultMessage()];
-    }
-
-    /**
-     * Delete from memcached.
-     *
-     * @param string $key the key to search
-     *
-     * @return array ('code' => ResultCode, 'msg' => ResultMessage)
-     */
-    public function deleteFromMemcached($key)
-    {
-        $mc = $this->mcInit();
-        if (null !== $mc) {
-            $mc->delete($key);
-        }
-
-        return ['code' => $mc->getResultCode(), 'msg' => $mc->getResultMessage()];
     }
 
     /**

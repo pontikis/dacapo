@@ -13,37 +13,29 @@ Overview - Database
 * Supported RDMBS: MySQLi (or MariaDB), POSTGRESQL
 * Simple and clear syntax
 * Only prepared statements are used
+* Supported Queries: single SELECT, UPDATE, INSERT, DELETE.
 * Support of transactions
 * Write SQL easily and securely. Use dacapo ``sql_placeholder`` (? is the default) in place of parameters values. Dacapo will create SQL prepared statements from standard ANSI SQL.
 
 ```php
 $sql = 'SELECT procuct_name FROM products WHERE manufacturer = ? and type IN (?,?,?)';
 ```
-* Use ``$ds->execute()`` to execute one or usually multiple SQL statements (e.g. an SQL script). You cannot use prepared statements here.
 
 ### Remarks 
  
-* For MYSQLi SELECT prepared statements, mysqlnd is required
+* For MYSQLi SELECT prepared statements, `mysqlnd` is required
 * Persistent database connection NOT supported.
 * BLOB columns NOT supported
 * avoid boolean columns, use integer instead (1,0)
+* Use ``$ds->execute()`` to execute one or usually multiple SQL statements (e.g. an SQL script). You cannot use prepared statements here.
 
 ### About Exceptions
 
 You SHOULD create custom wrappers in your application to catch exceptions.
 
-Dacapo Error Handler will throw DacapoErrorException.
+Dacapo Error Handler will throw `DacapoErrorException`.
+
 If you choose to not use Dacapo Error Handler you will define type of Exception in your own Error Handler.
-
-Overview - Memcached
--------------------
-
-You may use Memcached https://memcached.org/ to cache results (optional)
-
-* Persistent connection NOT supported.
-* Memcached can store almost any type of data. Dacapo is tested with String, Integer, Float, Boolean, Array, NULL. But it is NOT recommended to use it with Boolean or NULL.
-* Since Cache is an ancillary tool, it is not considered appropriate to throw Exceptions when a Memcached operation fails. But the error is always available in case you want to notify admin (using email or whatever).
-
 
 Documentation
 -------------
@@ -83,38 +75,11 @@ $db_settings = [
 	'db_name' => 'baz',
 ];
 
-$memcached_settings = [
-	'mc_pool' => [
-		[
-			'mc_server' => '127.0.0.1',
-			'mc_port' => 11211,
-			'mc_weight' => 0
-		]
-	]
-];
-
 try {
-	$ds = new Dacapo($db_settings, $memcached_settings);	
+	$ds = new Dacapo($db_settings);	
 } catch (Exception $e) {
 	// your code here
 }
-```
-You may use it only with Database
-
-```
-$ds = new Dacapo($db_settings);	
-```
-
-only with Memcached
-
-```
-$ds = new Dacapo([], $memcached_settings);	
-```
-
-or both
-
-```
-$ds = new Dacapo($db_settings, $memcached_settings);	
 ```
 
 ### Select
@@ -245,23 +210,6 @@ if($ds->getNumRows() > 0) {
 $limitSQL = $ds->limit($rows_per_page, ($page_num - 1) * $rows_per_page);
 ```
 
-### Memcached
-
-```php
-$mc_key_orders = 'orders_completed';
-$orders = $ds->pullFromMemcached($mc_key_orders);
-if(!$orders) {
-	$sql = 'SELECT * FROM orders WHERE category = ?';
-	$bind_params = [$category];
-	$res = $ds->select($sql, $bind_params);
-	$orders = $ds->getData();
-	$ds->pushToMemcached($mc_key_orders, $orders);
-}
-
-// after order insert, update or delete
-$ds->deleteFromMemcached($mc_key_orders);
-```
-
 PHPUnit
 -------
 
@@ -270,11 +218,7 @@ Tests performed in Debian 9 Linux server with
 * MariaDB Ver 15.1 Distrib 10.1.26-MariaDB (similar to MySQL 5.7)
 * Postgres 9.6.7
 
-Test databases are provided in tests/dbdata folder
-
-Customize credentials in `tests/phpunit.xml`
-
-First copy `phpunit.dest.xml` to `phpunit.xml`
+Test databases are provided in `tests/dbdata` folder. Customize credentials in `tests/phpunit.xml`. First copy `phpunit.dest.xml` to `phpunit.xml`
 
 ### MySQL tests
 
@@ -311,13 +255,6 @@ In this case PHP_Invoker is needed https://github.com/sebastianbergmann/php-invo
 ```
 ./vendor/bin/phpunit  --configuration tests/phpunit.xml tests/PostgresqlCUDTest.php
 ```
-
-### Memcached tests
-
-```
-./vendor/bin/phpunit --configuration tests/phpunit.xml tests/MemcachedTest.php
-```
-
 ### Run certain test eg testConnectFails1()
 
 ```
