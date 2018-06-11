@@ -1,20 +1,19 @@
 Dacapo
 ======
 
-Dacapo class (Simple PHP database and memcached wrapper)
+Dacapo class (Simple PHP database wrapper)
 
 Copyright Christos Pontikis http://www.pontikis.net
 
 License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 
-Overview - features
+Overview - Database
 -------------------
 
 * Supported RDMBS: MySQLi (or MariaDB), POSTGRESQL
 * Simple and clear syntax
 * Only prepared statements are used
 * Support of transactions
-* Use Memcached https://memcached.org/ to cache results (optional)
 * Write SQL easily and securely. Use dacapo ``sql_placeholder`` (? is the default) in place of parameters values. Dacapo will create SQL prepared statements from standard ANSI SQL.
 
 ```php
@@ -35,6 +34,16 @@ You SHOULD create custom wrappers in your application to catch exceptions.
 
 Dacapo Error Handler will throw DacapoErrorException.
 If you choose to not use Dacapo Error Handler you will define type of Exception in your own Error Handler.
+
+Overview - Memcached
+-------------------
+
+You may use Memcached https://memcached.org/ to cache results (optional)
+
+* Persistent connection NOT supported.
+* Memcached can store almost any type of data. Dacapo is tested with String, Integer, Float, Boolean, Array, NULL. But it is NOT recommended to use it with Boolean or NULL.
+* Since Cache is an ancillary tool, it is not considered appropriate to throw Exceptions when a Memcached operation fails. But the error is always available in case you want to notify admin (using email or whatever).
+
 
 Documentation
 -------------
@@ -78,7 +87,7 @@ $memcached_settings = [
 	'mc_pool' => [
 		[
 			'mc_server' => '127.0.0.1',
-			'mc_port' => '11211',
+			'mc_port' => 11211,
 			'mc_weight' => 0
 		]
 	]
@@ -89,6 +98,23 @@ try {
 } catch (Exception $e) {
 	// your code here
 }
+```
+You may use it only with Database
+
+```
+$ds = new Dacapo($db_settings);	
+```
+
+only with Memcached
+
+```
+$ds = new Dacapo([], $memcached_settings);	
+```
+
+or both
+
+```
+$ds = new Dacapo($db_settings, $memcached_settings);	
 ```
 
 ### Select
@@ -200,23 +226,6 @@ try {
 }
 ```
 
-### Memcached
-
-```php
-$mc_key_orders = 'orders_completed';
-$orders = $ds->pull_from_memcached($mc_key_orders);
-if(!$orders) {
-	$sql = 'SELECT * FROM orders WHERE category = ?';
-	$bind_params = [$category];
-	$res = $ds->select($sql, $bind_params);
-	$orders = $ds->getData();
-	$ds->push_to_memcached($mc_key_orders, $orders);
-}
-
-// after order insert or delete
-$ds->delete_from_memcached($mc_key_orders);
-```
-
 ### Utility functions
 
 #### lower
@@ -234,6 +243,23 @@ if($ds->getNumRows() > 0) {
 
 ```php
 $limitSQL = $ds->limit($rows_per_page, ($page_num - 1) * $rows_per_page);
+```
+
+### Memcached
+
+```php
+$mc_key_orders = 'orders_completed';
+$orders = $ds->pullFromMemcached($mc_key_orders);
+if(!$orders) {
+	$sql = 'SELECT * FROM orders WHERE category = ?';
+	$bind_params = [$category];
+	$res = $ds->select($sql, $bind_params);
+	$orders = $ds->getData();
+	$ds->pushToMemcached($mc_key_orders, $orders);
+}
+
+// after order insert, update or delete
+$ds->deleteFromMemcached($mc_key_orders);
 ```
 
 PHPUnit

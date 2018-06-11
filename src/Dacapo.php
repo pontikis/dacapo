@@ -705,7 +705,7 @@ class Dacapo
      *
      * @return Memcached|null
      */
-    public function mc_init()
+    public function mcInit()
     {
         if (null === $this->mc) {
             $mc_settings = $this->mc_settings;
@@ -714,9 +714,9 @@ class Dacapo
             $mc       = new \Memcached();
             foreach ($mc_settings['mc_pool'] as $mc_item) {
                 if (array_key_exists('weight', $mc_item)) {
-                    $res_mc = $mc->addServer($mc_item['mc_server'], $mc_item['mc_port'], $mc_item['weight']);
+                    $res_mc = $mc->addServer($mc_item['mc_server'], (int) $mc_item['mc_port'], (int) $mc_item['weight']);
                 } else {
-                    $res_mc = $mc->addServer($mc_item['mc_server'], $mc_item['mc_port']);
+                    $res_mc = $mc->addServer($mc_item['mc_server'], (int) $mc_item['mc_port']);
                 }
                 if ($res_mc) {
                     ++$mc_items;
@@ -738,10 +738,10 @@ class Dacapo
      *
      * @return mixed the value for key (false if not found)
      */
-    public function pull_from_memcached($key)
+    public function pullFromMemcached($key)
     {
         $val = false;
-        $mc  = $this->mc_init();
+        $mc  = $this->mcInit();
         if (null !== $mc) {
             $val = $mc->get($key);
         }
@@ -758,9 +758,9 @@ class Dacapo
      *
      * @return array ('code' => ResultCode, 'msg' => ResultMessage)
      */
-    public function push_to_memcached($key, $val, $exp = 0)
+    public function pushToMemcached($key, $val, $exp = 0)
     {
-        $mc = $this->mc_init();
+        $mc = $this->mcInit();
         if (null !== $mc) {
             $mc->set($key, $val, $exp);
         }
@@ -775,9 +775,9 @@ class Dacapo
      *
      * @return array ('code' => ResultCode, 'msg' => ResultMessage)
      */
-    public function delete_from_memcached($key)
+    public function deleteFromMemcached($key)
     {
-        $mc = $this->mc_init();
+        $mc = $this->mcInit();
         if (null !== $mc) {
             $mc->delete($key);
         }
