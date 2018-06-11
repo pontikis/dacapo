@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['mc_5finit',['mc_init',['../class_pontikis_1_1_database_1_1_dacapo.html#a44494361de6f80ef10478b6f6acddbb8',1,'Pontikis::Database::Dacapo']]]
+  ['restoreerrorhandler',['restoreErrorHandler',['../class_pontikis_1_1_database_1_1_dacapo.html#a0ba562955e695e1f343bf4551a882cb5',1,'Pontikis::Database::Dacapo']]],
+  ['rollbacktrans',['rollbackTrans',['../class_pontikis_1_1_database_1_1_dacapo.html#a5bb21f98c8cedf6aae247efc8b2a46f5',1,'Pontikis::Database::Dacapo']]]
 ];

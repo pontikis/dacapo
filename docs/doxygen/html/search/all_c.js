@@ -1,8 +1,17 @@
 var searchData=
 [
-  ['rdbms_5fmysqli',['RDBMS_MYSQLI',['../class_pontikis_1_1_database_1_1_dacapo.html#ac5406cd5263082626c7bf61ea1cb801e',1,'Pontikis::Database::Dacapo']]],
-  ['rdbms_5fpostgres',['RDBMS_POSTGRES',['../class_pontikis_1_1_database_1_1_dacapo.html#abdf7f0a05aa3a07b5df8401d5ed116c5',1,'Pontikis::Database::Dacapo']]],
-  ['readme_2emd',['README.md',['../_r_e_a_d_m_e_8md.html',1,'']]],
-  ['restoreerrorhandler',['restoreErrorHandler',['../class_pontikis_1_1_database_1_1_dacapo.html#a0ba562955e695e1f343bf4551a882cb5',1,'Pontikis::Database::Dacapo']]],
-  ['rollbacktrans',['rollbackTrans',['../class_pontikis_1_1_database_1_1_dacapo.html#a5bb21f98c8cedf6aae247efc8b2a46f5',1,'Pontikis::Database::Dacapo']]]
+  ['select',['select',['../class_pontikis_1_1_database_1_1_dacapo.html#a9700a421451e4222ce634008d44224cb',1,'Pontikis::Database::Dacapo']]],
+  ['select_5fquery',['SELECT_QUERY',['../class_pontikis_1_1_database_1_1_dacapo.html#aa7b6b2a043f8775947cafdc190feeca2',1,'Pontikis::Database::Dacapo']]],
+  ['setcharset',['setCharset',['../class_pontikis_1_1_database_1_1_dacapo.html#a81ee11b0f5fadecaece55170fea54b29',1,'Pontikis::Database::Dacapo']]],
+  ['setdbport',['setDbPort',['../class_pontikis_1_1_database_1_1_dacapo.html#a9b316c6029078d7cc0f321f951a0d5c7',1,'Pontikis::Database::Dacapo']]],
+  ['setdbschema',['setDbSchema',['../class_pontikis_1_1_database_1_1_dacapo.html#aae43a45a7af0c45312c539257eb621bf',1,'Pontikis::Database::Dacapo']]],
+  ['setfetchrow',['setFetchRow',['../class_pontikis_1_1_database_1_1_dacapo.html#a0a9aeda8b2e85b8cdd4324aab663c837',1,'Pontikis::Database::Dacapo']]],
+  ['setfetchtypeassoc',['setFetchTypeAssoc',['../class_pontikis_1_1_database_1_1_dacapo.html#af695ac9f54701bc7dedb465d195d61a7',1,'Pontikis::Database::Dacapo']]],
+  ['setfetchtypeboth',['setFetchTypeBoth',['../class_pontikis_1_1_database_1_1_dacapo.html#aeda2175a15308c135c58a142986289cc',1,'Pontikis::Database::Dacapo']]],
+  ['setfetchtypenum',['setFetchTypeNum',['../class_pontikis_1_1_database_1_1_dacapo.html#a90d978a463d4eb907a59e10cfafdb3e2',1,'Pontikis::Database::Dacapo']]],
+  ['setpgconnectforcenew',['setPgConnectForceNew',['../class_pontikis_1_1_database_1_1_dacapo.html#ab17c446f69ddb9d55e4815124538e47f',1,'Pontikis::Database::Dacapo']]],
+  ['setpgconnecttimout',['setPgConnectTimout',['../class_pontikis_1_1_database_1_1_dacapo.html#a0a23269c3e33e1d533cc4dfc251c859e',1,'Pontikis::Database::Dacapo']]],
+  ['setpginsertsequence',['setPgInsertSequence',['../class_pontikis_1_1_database_1_1_dacapo.html#a5e535dcf76b0be5f802581eed23b7152',1,'Pontikis::Database::Dacapo']]],
+  ['setsqlplaceholder',['setSqlPlaceholder',['../class_pontikis_1_1_database_1_1_dacapo.html#ab9b67887b3567569ca1e160ad24132f2',1,'Pontikis::Database::Dacapo']]],
+  ['setusedacapoerrorhandler',['setUseDacapoErrorHandler',['../class_pontikis_1_1_database_1_1_dacapo.html#a9745c2862088fa0843ed68de8fbaf401',1,'Pontikis::Database::Dacapo']]]
 ];

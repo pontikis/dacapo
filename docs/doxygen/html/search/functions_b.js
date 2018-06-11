@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['restoreerrorhandler',['restoreErrorHandler',['../class_pontikis_1_1_database_1_1_dacapo.html#a0ba562955e695e1f343bf4551a882cb5',1,'Pontikis::Database::Dacapo']]],
-  ['rollbacktrans',['rollbackTrans',['../class_pontikis_1_1_database_1_1_dacapo.html#a5bb21f98c8cedf6aae247efc8b2a46f5',1,'Pontikis::Database::Dacapo']]]
+  ['update',['update',['../class_pontikis_1_1_database_1_1_dacapo.html#a2ad3b213af4b7cdc9d145591a5e0381e',1,'Pontikis::Database::Dacapo']]]
 ];

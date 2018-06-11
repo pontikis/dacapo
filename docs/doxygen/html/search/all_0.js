@@ -14,8 +14,6 @@ var searchData=
   ['_24fetch_5frow',['$fetch_row',['../class_pontikis_1_1_database_1_1_dacapo.html#aba0e91d5b5cefe34a55e148308b08121',1,'Pontikis::Database::Dacapo']]],
   ['_24fetch_5ftype',['$fetch_type',['../class_pontikis_1_1_database_1_1_dacapo.html#ae5a21014863c95bce4a31f3d39945fed',1,'Pontikis::Database::Dacapo']]],
   ['_24insert_5fid',['$insert_id',['../class_pontikis_1_1_database_1_1_dacapo.html#a7d5870c89e950451ed8a204c07c66a30',1,'Pontikis::Database::Dacapo']]],
-  ['_24mc',['$mc',['../class_pontikis_1_1_database_1_1_dacapo.html#ae5fb815e2f64eabb852aeec1c12f8822',1,'Pontikis::Database::Dacapo']]],
-  ['_24mc_5fsettings',['$mc_settings',['../class_pontikis_1_1_database_1_1_dacapo.html#ab0728c1cb93ebf716b85f979017a350c',1,'Pontikis::Database::Dacapo']]],
   ['_24num_5frows',['$num_rows',['../class_pontikis_1_1_database_1_1_dacapo.html#ac926549b713e71c5f5fd63999cebfb8c',1,'Pontikis::Database::Dacapo']]],
   ['_24pg_5fconnect_5fforce_5fnew',['$pg_connect_force_new',['../class_pontikis_1_1_database_1_1_dacapo.html#a95f2139992d53cf7da2c2064476ec9bf',1,'Pontikis::Database::Dacapo']]],
   ['_24pg_5fconnect_5ftimeout',['$pg_connect_timeout',['../class_pontikis_1_1_database_1_1_dacapo.html#ac58051f08cc8fdda880bf7ed96cbb9a3',1,'Pontikis::Database::Dacapo']]],
