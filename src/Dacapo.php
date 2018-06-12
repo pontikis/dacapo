@@ -41,6 +41,7 @@ class Dacapo
     const ERROR_EXCEPTION_IDENTIFIER = 'Dacapo_ErrorException';
 
     const ERROR_RDBMS_NOT_SUPPORTED = 'Database not supported';
+    const ERROR_INVALID_CONNECTION  = 'Invalid connection given';
 
     const ERROR_DBSERVER_IS_REQUIRED = 'Database server name or IP is required';
     const ERROR_DBNAME_IS_REQUIRED   = 'Database name is required';
@@ -54,24 +55,33 @@ class Dacapo
     private $use_dacapo_error_handler;
 
     // connection params -------------------------------------------------------
+    /** @var mysqli|resource|null the CURRENT connection, which will be used for Queries */
     private $conn;
-
+    /** @var string CURRENT connection driver */
     private $rdbms;
+    /** @var string CURRENT connection server or IP */
     private $db_server;
+    /** @var string CURRENT connection user */
     private $db_user;
+    /** @var string CURRENT connection password */
     private $db_passwd;
+    /** @var string CURRENT connection database name */
     private $db_name;
 
     // optional
+    /** @var int|null CURRENT connection port */
     private $db_port;
+    /** @var string|null CURRENT connection character set */
     private $charset;
+    /** @var bool CURRENT connection connect_force_new option (Postgresql only) */
     private $pg_connect_force_new;
+    /** @var int CURRENT connection connect_timeout option (Postgresql only) */
     private $pg_connect_timeout;
 
     // query params ------------------------------------------------------------
     /** @var string supported types SELECT, UPDATE, INSERT, DELETE */
     private $query_type;
-    /** @var string Postgres schema */
+    /** @var string Postgres schema (Postgresql only) */
     private $db_schema;
     /** @var string variables placeholder in SQL statements */
     private $sql_placeholder;
@@ -81,11 +91,11 @@ class Dacapo
     private $fetch_type;
     /** @var string the current sql statement for supported query types */
     private $sql;
-    /** @var array types of params to bind with MYSQLi */
+    /** @var array types of params to bind with MYSQLi (MySQL only) */
     private $a_types;
-    /** @var array|null data returned */
+    /** @var array|null data returned from SELECT Query */
     private $data;
-    /** @var int number of rows returned */
+    /** @var int number of rows returned from SELECT Query */
     private $num_rows;
     /** @var bool fetch single row */
     private $fetch_row;
@@ -93,7 +103,7 @@ class Dacapo
     private $insert_id;
     /** @var string Postgres sequence in INSERT statement (default is 'auto' seq name will be created as tableName_seq_id, null means that there is NO sequence for this table, otherwise the provided name will be used) */
     private $query_insert_pg_sequence;
-    /** @var int number of affected rows in UPDATE, INSERT, DELETE statements */
+    /** @var int number of affected rows in last UPDATE, INSERT, DELETE statement */
     private $affected_rows;
 
     /**
@@ -196,49 +206,120 @@ class Dacapo
     }
 
     // connection --------------------------------------------------------------
-    public function getDbPort()
+
+    /**
+     * Set stored connection as current database connection.
+     *
+     * @param mysqli|resource $conn
+     */
+    public function setConn($conn)
     {
-        return $this->db_port;
+        if ($conn instanceof \mysqli) {
+            $this->rdbms           = self::RDBMS_MYSQLI;
+            $this->pst_placeholder = self::PREPARED_STATEMENTS_QUESTION_MARK;
+        } elseif ('pgsql link' === get_resource_type($conn)) {
+            $this->rdbms           = self::RDBMS_POSTGRES;
+            $this->pst_placeholder = self::PREPARED_STATEMENTS_NUMBERED;
+        } else {
+            throw new Exception(self::ERROR_INVALID_CONNECTION);
+        }
+
+        $this->conn = $conn;
+
+        return $this;
+    }
+
+    public function getRDBMS()
+    {
+        return $this->rdbms;
+    }
+
+    /**
+     * @param string $rdbms
+     *
+     * @throws Exception
+     */
+    public function setRDBMS(string $rdbms)
+    {
+        // RDBMS not supported
+        if (false === in_array($this->rdbms, [self::RDBMS_MYSQLI, self::RDBMS_POSTGRES])) {
+            throw new Exception(self::ERROR_RDBMS_NOT_SUPPORTED);
+        }
+
+        switch ($rdbms) {
+            case self::RDBMS_MYSQLI:
+                $this->pst_placeholder = self::PREPARED_STATEMENTS_QUESTION_MARK;
+                break;
+            case self::RDBMS_POSTGRES:
+                $this->pst_placeholder = self::PREPARED_STATEMENTS_NUMBERED;
+                break;
+        }
+
+        $this->conn  = null;
+        $this->rdbms = $rdbms;
+
+        return $this;
+    }
+
+    public function setDbServer(string $srv)
+    {
+        $this->conn      = null;
+        $this->db_server = $srv;
+
+        return $this;
+    }
+
+    public function setDbName(string $db_name)
+    {
+        $this->conn    = null;
+        $this->db_name = $db_name;
+
+        return $this;
+    }
+
+    public function setDbUser(string $db_user)
+    {
+        $this->conn    = null;
+        $this->db_user = $db_user;
+
+        return $this;
+    }
+
+    public function setDbPasswd(string $db_passwd)
+    {
+        $this->conn      = null;
+        $this->db_passwd = $db_passwd;
+
+        return $this;
     }
 
     public function setDbPort(int $port)
     {
+        $this->conn    = null;
         $this->db_port = $port;
 
         return $this;
     }
 
-    public function getCharset()
-    {
-        return $this->charset;
-    }
-
     public function setCharset($charset)
     {
+        $this->conn    = null;
         $this->charset = $charset;
 
         return $this;
     }
 
-    public function getPgConnectForceNew()
-    {
-        return $this->pg_connect_force_new;
-    }
-
     public function setPgConnectForceNew(bool $flag)
     {
+        $this->conn                 = null;
         $this->pg_connect_force_new = $flag;
 
         return $this;
     }
 
-    public function getPgConnectTimout()
-    {
-        return $this->pg_connect_timeout;
-    }
-
     public function setPgConnectTimout($seconds)
     {
+        $this->conn               = null;
         $this->pg_connect_timeout = $seconds;
 
         return $this;
@@ -466,28 +547,40 @@ class Dacapo
     }
 
     /**
-     * Disconnect database (if connection has been established).
+     * Disconnect certain connection.
+     *
+     * @param mysqli|resource|null $conn
      *
      * @throws DacapoErrorException
      */
-    public function dbDisconnect()
+    public function dbDisconnect($conn = null)
     {
-        $conn = $this->conn;
+        $this->applyDacapoErrorHandler();
 
-        if (null !== $conn) {
-            $this->applyDacapoErrorHandler();
+        if (null === $conn) {
+            $conn = $this->conn;
 
-            switch ($this->rdbms) {
-                case self::RDBMS_MYSQLI:
-                    $conn->close();
-                    break;
-                case self::RDBMS_POSTGRES:
-                    pg_close($conn);
-                    break;
+            if (null !== $conn) {
+                switch ($this->rdbms) {
+                    case self::RDBMS_MYSQLI:
+                        $conn->close();
+                        break;
+                    case self::RDBMS_POSTGRES:
+                        pg_close($conn);
+                        break;
+                }
             }
-
-            $this->restoreErrorHandler();
+        } else {
+            if ($conn instanceof \mysqli) {
+                $conn->close();
+            } elseif ('pgsql link' === get_resource_type($conn)) {
+                pg_close($conn);
+            } else {
+                throw new Exception(self::ERROR_INVALID_CONNECTION);
+            }
         }
+
+        $this->restoreErrorHandler();
     }
 
     /**
