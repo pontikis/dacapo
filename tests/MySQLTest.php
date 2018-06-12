@@ -383,9 +383,9 @@ final class MySQLTest extends TestCase
     ////////////////////////////////////////////////////////////////////
     public function testSelect01()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
-        $sql           = 'SELECT * FROM customers_en';
-        $bind_params   = [];
+        $ds          = new Dacapo(self::$db_with_server_name);
+        $sql         = 'SELECT * FROM customers_en';
+        $bind_params = [];
         $ds->select($sql, $bind_params);
         $this->assertSame(
             100,
@@ -395,9 +395,9 @@ final class MySQLTest extends TestCase
 
     public function testSelect01el()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
-        $sql           = 'SELECT * FROM customers_el';
-        $bind_params   = [];
+        $ds          = new Dacapo(self::$db_with_server_name);
+        $sql         = 'SELECT * FROM customers_el';
+        $bind_params = [];
         $ds->select($sql, $bind_params);
         $this->assertSame(
             105,
@@ -407,36 +407,35 @@ final class MySQLTest extends TestCase
 
     public function testSelect02()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
-        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
-        $bind_params   = [1];
+        $ds          = new Dacapo(self::$db_with_server_name);
+        $sql         = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Robertson',
             $row['lastname']
         );
 
         $ds = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
+
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
-        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Robertson',
             $row['lastname']
         );
 
         $ds = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
+
         $ds->setCharset($GLOBALS['MYSQL_CHARSET_WRONG']);
-        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Robertson',
             $row['lastname']
@@ -445,36 +444,36 @@ final class MySQLTest extends TestCase
 
     public function testSelect02el()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
-        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
-        $bind_params   = [1];
+        $ds = new Dacapo(self::$db_with_server_name);
+
+        $sql         = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Γεωργίου',
             $row['lastname']
         );
 
         $ds = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
+
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
-        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Γεωργίου',
             $row['lastname']
         );
 
         $ds = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
+
         $ds->setCharset($GLOBALS['MYSQL_CHARSET_WRONG']);
-        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertNotEquals(
             'Γεωργίου',
             $row['lastname']
@@ -483,40 +482,40 @@ final class MySQLTest extends TestCase
 
     public function testSelect03()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
+        $ds = new Dacapo(self::$db_with_server_name);
+
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeAssoc();
-        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Robertson',
             $row['lastname']
         );
 
         $ds = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
+
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeNum();
-        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Robertson',
             $row[0]
         );
 
         $ds = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
+
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeBoth();
-        $sql           = 'SELECT lastname FROM customers_en WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT lastname FROM customers_en WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Robertson',
             $row['lastname']
@@ -529,40 +528,40 @@ final class MySQLTest extends TestCase
 
     public function testSelect03el()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
+        $ds = new Dacapo(self::$db_with_server_name);
+
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeAssoc();
-        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Γεωργίου',
             $row['lastname']
         );
 
         $ds = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
+
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeNum();
-        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Γεωργίου',
             $row[0]
         );
 
         $ds = new Dacapo(self::$db_with_server_name);
-        $ds->setFetchRow(true);
+
         $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
         $ds->setFetchTypeBoth();
-        $sql           = 'SELECT lastname FROM customers_el WHERE id=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT lastname FROM customers_el WHERE id=?';
+        $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             'Γεωργίου',
             $row['lastname']
@@ -575,9 +574,9 @@ final class MySQLTest extends TestCase
 
     public function testSelectFails01()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
-        $sql           = 'SELECT * FROM customers_xx';
-        $bind_params   = [];
+        $ds          = new Dacapo(self::$db_with_server_name);
+        $sql         = 'SELECT * FROM customers_xx';
+        $bind_params = [];
         $this->expectException(DacapoErrorException::class);
         $ds->select($sql, $bind_params);
     }
@@ -586,65 +585,65 @@ final class MySQLTest extends TestCase
     {
         $ds = new Dacapo(self::$db_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
-        $sql           = 'SELECT * FROM customers_xx';
-        $bind_params   = [];
+        $sql         = 'SELECT * FROM customers_xx';
+        $bind_params = [];
         $this->expectException(Warning::class);
         $ds->select($sql, $bind_params);
     }
 
     public function testSelectFails02()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
-        $sql           = 'SELECT * FROM customers_en WHERE wrong_column=?';
-        $bind_params   = [1];
+        $ds          = new Dacapo(self::$db_with_server_name);
+        $sql         = 'SELECT * FROM customers_en WHERE wrong_column=?';
+        $bind_params = [1];
         $this->expectException(DacapoErrorException::class);
         $ds->select($sql, $bind_params);
     }
 
     public function testSelectFails02a()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
-        $sql           = 'SELECT * FROM customers_en WHERE wrong_column=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT * FROM customers_en WHERE wrong_column=?';
+        $bind_params = [1];
         $this->expectException(Warning::class);
         $ds->select($sql, $bind_params);
     }
 
     public function testSelectFails03()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
-        $sql           = 'SELECT * FROM customers_en WHERE id=?';
-        $bind_params   = [1, 2];
+        $ds          = new Dacapo(self::$db_with_server_name);
+        $sql         = 'SELECT * FROM customers_en WHERE id=?';
+        $bind_params = [1, 2];
         $this->expectException(DacapoErrorException::class);
         $ds->select($sql, $bind_params);
     }
 
     public function testSelectFails03a()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
-        $sql           = 'SELECT * FROM customers_en WHERE id=?';
-        $bind_params   = [1, 2];
+        $sql         = 'SELECT * FROM customers_en WHERE id=?';
+        $bind_params = [1, 2];
         $this->expectException(Warning::class);
         $ds->select($sql, $bind_params);
     }
 
     public function testSelectFails04()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
-        $sql           = 'SELECT * FROM customers_en WHERE id=? AND lastname=?';
-        $bind_params   = [1];
+        $ds          = new Dacapo(self::$db_with_server_name);
+        $sql         = 'SELECT * FROM customers_en WHERE id=? AND lastname=?';
+        $bind_params = [1];
         $this->expectException(DacapoErrorException::class);
         $ds->select($sql, $bind_params);
     }
 
     public function testSelectFails04a()
     {
-        $ds            = new Dacapo(self::$db_with_server_name);
+        $ds = new Dacapo(self::$db_with_server_name);
         $ds->setUseDacapoErrorHandler(false);
-        $sql           = 'SELECT * FROM customers_en WHERE id=? AND lastname=?';
-        $bind_params   = [1];
+        $sql         = 'SELECT * FROM customers_en WHERE id=? AND lastname=?';
+        $bind_params = [1];
         $this->expectException(Warning::class);
         $ds->select($sql, $bind_params);
     }

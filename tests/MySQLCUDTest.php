@@ -94,11 +94,10 @@ CREATE TABLE `customers` (
             $ds->getAffectedRows()
         );
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM customers WHERE id=?';
         $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             1,
             $row['id']
@@ -145,11 +144,10 @@ CREATE TABLE `customers` (
             $ds->getAffectedRows()
         );
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM customers WHERE id=?';
         $bind_params = [2];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             2,
             $row['id']
@@ -197,11 +195,10 @@ CREATE TABLE `customers` (
             $ds->getAffectedRows()
         );
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM customers WHERE id=?';
         $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             1,
             $row['id']
@@ -245,11 +242,10 @@ CREATE TABLE `customers` (
             $ds->getAffectedRows()
         );
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM customers WHERE id=?';
         $bind_params = [2];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             2,
             $row['id']
@@ -335,7 +331,6 @@ CREATE TABLE `customers` (
             'Jeremy',
         ];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
         $this->assertSame(
             0,
             $ds->getNumRows()
@@ -365,14 +360,13 @@ CREATE TABLE `customers` (
 
         $ds->commitTrans();
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM customers WHERE lastname=? AND firstname=?';
         $bind_params = [
             'Fowler',
             'Jeremy',
         ];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             4,
             $row['id']
@@ -467,14 +461,13 @@ CREATE TABLE `customers` (
             $ds->rollbackTrans();
         }
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM customers WHERE lastname=? AND firstname=?';
         $bind_params = [
             'Johnston',
             'Patrick',
         ];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             7,
             $row['id']
@@ -490,7 +483,7 @@ CREATE TABLE `customers` (
             'Shawn',
         ];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             8,
             $row['id']

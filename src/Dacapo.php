@@ -49,7 +49,7 @@ class Dacapo
     const ERROR_DBPASSWD_IS_REQUIRED = 'Database password is required';
 
     const ERROR_UNSUPPORTED_QUERY = 'Unsupported query type';
-    const ERROR_FETCH_ROW_INVALID = 'Query does not return one row';
+    const ERROR_INVALID_ROW_INDEX = 'Invalid row index';
 
     // error handler -----------------------------------------------------------
     private $use_dacapo_error_handler;
@@ -97,8 +97,6 @@ class Dacapo
     private $data;
     /** @var int number of rows returned from SELECT Query */
     private $num_rows;
-    /** @var bool fetch single row */
-    private $fetch_row;
     /** @var int|null last inserted id */
     private $insert_id;
     /** @var string Postgres sequence in INSERT statement (default is 'auto' seq name will be created as tableName_seq_id, null means that there is NO sequence for this table, otherwise the provided name will be used) */
@@ -185,7 +183,6 @@ class Dacapo
 
             $this->data                     = null;
             $this->num_rows                 = null;
-            $this->fetch_row                = false;
             $this->insert_id                = null;
             $this->affected_rows            = null;
             $this->query_insert_pg_sequence = self::PG_SEQUENCE_NAME_AUTO;
@@ -420,16 +417,20 @@ class Dacapo
         return $this->num_rows;
     }
 
-    public function getFetchRow(): bool
+    /**
+     * @param int $index
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
+    public function getRow(int $index = 0)
     {
-        return $this->fetch_row;
-    }
+        if ($this->num_rows > 0 && $this->num_rows > $index) {
+            return $this->data[$index];
+        }
 
-    public function setFetchRow(bool $flag)
-    {
-        $this->fetch_row = $flag;
-
-        return $this;
+        throw new Exception(self::ERROR_INVALID_ROW_INDEX);
     }
 
     /**
@@ -946,13 +947,6 @@ class Dacapo
                     $stmt->free_result();
 
                     $this->data = $a_data;
-                    if ($this->fetch_row) {
-                        if (1 === count($a_data)) {
-                            $this->data = $a_data[0];
-                        } else {
-                            trigger_error(self::ERROR_FETCH_ROW_INVALID, E_USER_WARNING);
-                        }
-                    }
                 }
 
                 if (in_array($this->query_type,
@@ -989,13 +983,6 @@ class Dacapo
                     }
 
                     $this->data = $a_data;
-                    if ($this->fetch_row) {
-                        if (1 === count($a_data)) {
-                            $this->data = $a_data[0];
-                        } else {
-                            trigger_error(self::ERROR_FETCH_ROW_INVALID, E_USER_WARNING);
-                        }
-                    }
                 }
 
                 if (in_array($this->query_type,

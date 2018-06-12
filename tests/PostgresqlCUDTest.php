@@ -114,11 +114,10 @@ ALTER TABLE ONLY customers
             $ds->getAffectedRows()
         );
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM test.customers WHERE id=?';
         $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             1,
             (int) $row['id']
@@ -166,11 +165,10 @@ ALTER TABLE ONLY customers
             $ds->getAffectedRows()
         );
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM test.customers WHERE id=?';
         $bind_params = [2];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             2,
             (int) $row['id']
@@ -219,11 +217,10 @@ ALTER TABLE ONLY customers
             $ds->getAffectedRows()
         );
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM test.customers WHERE id=?';
         $bind_params = [1];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             1,
             (int) $row['id']
@@ -268,11 +265,10 @@ ALTER TABLE ONLY customers
             $ds->getAffectedRows()
         );
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM test.customers WHERE id=?';
         $bind_params = [2];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             2,
             (int) $row['id']
@@ -360,7 +356,6 @@ ALTER TABLE ONLY customers
             'Jeremy',
         ];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
         $this->assertSame(
             0,
             $ds->getNumRows()
@@ -391,14 +386,13 @@ ALTER TABLE ONLY customers
 
         $ds->commitTrans();
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM test.customers WHERE lastname=? AND firstname=?';
         $bind_params = [
             'Fowler',
             'Jeremy',
         ];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             4,
             (int) $row['id']
@@ -495,14 +489,13 @@ ALTER TABLE ONLY customers
             $ds->rollbackTrans();
         }
 
-        $ds->setFetchRow(true);
         $sql         = 'SELECT * FROM test.customers WHERE lastname=? AND firstname=?';
         $bind_params = [
             'Johnston',
             'Patrick',
         ];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             7,
             (int) $row['id']
@@ -518,7 +511,7 @@ ALTER TABLE ONLY customers
             'Shawn',
         ];
         $ds->select($sql, $bind_params);
-        $row = $ds->getData();
+        $row = $ds->getRow();
         $this->assertSame(
             8,
             (int) $row['id']
