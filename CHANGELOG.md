@@ -7,6 +7,10 @@ Copyright Christos Pontikis http://www.pontikis.net
 
 License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 
+Release 1.0.1 (12 Jun 2018)
+---------------------------
+* BUG FIX: setPgInsertSequence() must concern the current query - also renamed to setQueryInsertPgSequence() #12
+
 Release 1.0.0 (11 Jun 2018)
 ---------------------------
 * Improve code quality (php7 required) #9

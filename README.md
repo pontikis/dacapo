@@ -37,6 +37,16 @@ Dacapo Error Handler will throw `DacapoErrorException`.
 
 If you choose to not use Dacapo Error Handler you will define type of Exception in your own Error Handler.
 
+### About Postgresql sequences
+
+When you execute an INSERT query in Postgres you have also to query a sequence if you want to get the last inserted value in Primary Key column. In this case use `setQueryInsertPgSequence()`. There are three options:
+
+* `self::PG_SEQUENCE_NAME_AUTO` in this case sequence name will be automatically constructed as `tablename_id_seq`. This is the default setting (ideal for SERIAL columns)
+* `null` (in the rare case when no Primary key is defined)
+* the sequence real name 
+
+REMEMBER that `query_insert_pg_sequence` will be reset to default `self::PG_SEQUENCE_NAME_AUTO` after each INSERT query.
+
 Documentation
 -------------
 

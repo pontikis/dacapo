@@ -19,7 +19,7 @@ use Exception;
  * @copyright  Christos Pontikis
  * @license    http://opensource.org/licenses/MIT
  *
- * @version    1.0.0 (11 Jun 2018)
+ * @version    1.0.1 (12 Jun 2018)
  */
 class Dacapo
 {
@@ -92,7 +92,7 @@ class Dacapo
     /** @var int|null last inserted id */
     private $insert_id;
     /** @var string Postgres sequence in INSERT statement (default is 'auto' seq name will be created as tableName_seq_id, null means that there is NO sequence for this table, otherwise the provided name will be used) */
-    private $pg_insert_sequence;
+    private $query_insert_pg_sequence;
     /** @var int number of affected rows in UPDATE, INSERT, DELETE statements */
     private $affected_rows;
 
@@ -173,12 +173,12 @@ class Dacapo
                 'NULL'    => 's', // do not need to cast null to a particular data type
             ];
 
-            $this->data               = null;
-            $this->num_rows           = null;
-            $this->fetch_row          = false;
-            $this->insert_id          = null;
-            $this->affected_rows      = null;
-            $this->pg_insert_sequence = self::PG_SEQUENCE_NAME_AUTO;
+            $this->data                     = null;
+            $this->num_rows                 = null;
+            $this->fetch_row                = false;
+            $this->insert_id                = null;
+            $this->affected_rows            = null;
+            $this->query_insert_pg_sequence = self::PG_SEQUENCE_NAME_AUTO;
         }
     }
 
@@ -371,9 +371,9 @@ class Dacapo
         return $this->affected_rows;
     }
 
-    public function getPgInsertSequence()
+    public function getQueryInsertPgSequence()
     {
-        return $this->pg_insert_sequence;
+        return $this->query_insert_pg_sequence;
     }
 
     /**
@@ -382,11 +382,13 @@ class Dacapo
      * null means that there is NO sequence for this table,
      * otherwise the provided name will be used.
      *
+     * REMEMBER that query_insert_pg_sequence will be reset to default after each INSERT query.
+     *
      * @param string|null $seq_name
      */
-    public function setPgInsertSequence($seq_name)
+    public function setQueryInsertPgSequence($seq_name)
     {
-        $this->pg_insert_sequence = $seq_name;
+        $this->query_insert_pg_sequence = $seq_name;
 
         return $this;
     }
@@ -913,19 +915,22 @@ class Dacapo
                 }
 
                 if (self::INSERT_QUERY === $this->query_type) {
-                    if (null !== $this->pg_insert_sequence) {
+                    if (null !== $this->query_insert_pg_sequence) {
                         // get last inserted value of serial column
-                        if (self::PG_SEQUENCE_NAME_AUTO === $this->pg_insert_sequence) {
+                        if (self::PG_SEQUENCE_NAME_AUTO === $this->query_insert_pg_sequence) {
                             $table_name    = $a_sql[2];
                             $sequence_name = $table_name . '_id_seq';
                         } else {
-                            $sequence_name = $this->pg_insert_sequence;
+                            $sequence_name = $this->query_insert_pg_sequence;
                         }
 
                         $sql_serial      = "SELECT currval('$sequence_name')";
                         $rs_serial       = pg_query($conn, $sql_serial);
                         $this->insert_id = pg_fetch_result($rs_serial, 0, 0);
                     }
+
+                    // restore $query_insert_pg_sequence to default
+                    $this->query_insert_pg_sequence = self::PG_SEQUENCE_NAME_AUTO;
                 }
 
                 break;
