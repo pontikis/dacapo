@@ -418,6 +418,8 @@ class Dacapo
     }
 
     /**
+     * Get certain row from data returned from a SELECT query.
+     *
      * @param int $index
      *
      * @throws Exception
