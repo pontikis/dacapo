@@ -121,21 +121,15 @@ if($ds->getNumRows() > 0) {
 ```php
 $sql = 'SELECT firstname, lastname FROM customers WHERE id = ?';
 $bind_params = [$id];
-$ds->setFetchRow(true);
 try {
 	$ds->select($sql, $bind_params);
-	$customer = $ds->getData();	
+	if(1 === $ds->getNumRows()) {
+		$customer = $ds->getRow();		
+		$firstname = $customer['firstname'];
+		$lastname = $customer['lastname'];
+	}
 } catch (DacapoErrorException $e) {
 	// your code here
-}
-```
-
-#### Get row data
-
-```php
-if($ds->getNumRows() == 1) {
-    $firstname = $customer['firstname'];
-    $lastname = $customer['lastname'];
 }
 ```
 

@@ -9,6 +9,7 @@ License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 
 Release 1.0.1 (12 Jun 2018)
 ---------------------------
+* setFetchRow() must concern the current query - removed in favor of getRow() #11
 * Allow multiple connections #13
 * BUG FIX: setPgInsertSequence() must concern the current query - also renamed to setQueryInsertPgSequence() #12
 
