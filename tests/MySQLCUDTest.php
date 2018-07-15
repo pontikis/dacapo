@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Pontikis\Database\Dacapo;
+use Pontikis\Database\DacapoErrorException;
 
 final class MySQLCUDTest extends TestCase
 {
@@ -492,5 +493,36 @@ CREATE TABLE `customers` (
             '988 Wayridge Park, Arizona, 85255, United States',
             $row['address']
         );
+    }
+
+    /**
+     * Uncaught exception will prevent transaction commit.
+     */
+    public function testTransactions05()
+    {
+        $ds = new Dacapo(self::$db);
+        $ds->setCharset($GLOBALS['MYSQL_CHARSET']);
+
+        $ds->beginTrans();
+
+        $sql         = 'INSERT INTO customers (lastname, firstname, gender, address) VALUES (?,?,?,?)';
+        $bind_params = [
+            'Fowler1',
+            'Jeremy1',
+            1,
+            '23 Dottie Trail, Virginia, 20189, United States',
+        ];
+        $ds->insert($sql, $bind_params);
+
+        $bind_params = [
+            'Fowler2',
+            'Jeremy2',
+            1,
+            '23 Dottie Trail, Virginia, 20189, United States',
+        ];
+        $ds->insert($sql, $bind_params);
+
+        $this->expectException(DacapoErrorException::class);
+        throw new DacapoErrorException('Uncaught exception');
     }
 }

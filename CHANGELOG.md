@@ -7,6 +7,10 @@ Copyright Christos Pontikis http://www.pontikis.net
 
 License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 
+Release 1.0.2 (15 Jul 2018)
+---------------------------
+* Uncaught exception will prevent transaction commit #15
+
 Release 1.0.1 (12 Jun 2018)
 ---------------------------
 * setFetchRow() must concern the current query - removed in favor of getRow() #11
