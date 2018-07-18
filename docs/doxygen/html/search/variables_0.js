@@ -2,6 +2,7 @@ var searchData=
 [
   ['_24a_5ftypes',['$a_types',['../class_pontikis_1_1_database_1_1_dacapo.html#a70d6a4f61dec9016271374c941771cd5',1,'Pontikis::Database::Dacapo']]],
   ['_24affected_5frows',['$affected_rows',['../class_pontikis_1_1_database_1_1_dacapo.html#a25e88e6ace7e937421f52a58f6cfe231',1,'Pontikis::Database::Dacapo']]],
+  ['_24bind_5fparams',['$bind_params',['../class_pontikis_1_1_database_1_1_dacapo.html#a4787a76724552b9621cb0250ceb29e8d',1,'Pontikis\Database\Dacapo\$bind_params()'],['../class_pontikis_1_1_database_1_1_dacapo_error_exception.html#a4787a76724552b9621cb0250ceb29e8d',1,'Pontikis\Database\DacapoErrorException\$bind_params()']]],
   ['_24charset',['$charset',['../class_pontikis_1_1_database_1_1_dacapo.html#af10158dd74b75f1d337e83102d6b82ce',1,'Pontikis::Database::Dacapo']]],
   ['_24conn',['$conn',['../class_pontikis_1_1_database_1_1_dacapo.html#aa8a5a87b9c1a6a0819b88447cbe41877',1,'Pontikis::Database::Dacapo']]],
   ['_24data',['$data',['../class_pontikis_1_1_database_1_1_dacapo.html#a6efc15b5a2314dd4b5aaa556a375c6d6',1,'Pontikis::Database::Dacapo']]],
@@ -20,7 +21,7 @@ var searchData=
   ['_24query_5finsert_5fpg_5fsequence',['$query_insert_pg_sequence',['../class_pontikis_1_1_database_1_1_dacapo.html#a8b8604612c7fd05186a27c9ba5d0a2d1',1,'Pontikis::Database::Dacapo']]],
   ['_24query_5ftype',['$query_type',['../class_pontikis_1_1_database_1_1_dacapo.html#ad065afe098b718503ac1c150c0febbd5',1,'Pontikis::Database::Dacapo']]],
   ['_24rdbms',['$rdbms',['../class_pontikis_1_1_database_1_1_dacapo.html#a133c2d33680dd620e976e80bc7a90909',1,'Pontikis::Database::Dacapo']]],
-  ['_24sql',['$sql',['../class_pontikis_1_1_database_1_1_dacapo.html#a047170d6020a882807665812a27e2525',1,'Pontikis::Database::Dacapo']]],
+  ['_24sql',['$sql',['../class_pontikis_1_1_database_1_1_dacapo.html#a047170d6020a882807665812a27e2525',1,'Pontikis\Database\Dacapo\$sql()'],['../class_pontikis_1_1_database_1_1_dacapo_error_exception.html#a047170d6020a882807665812a27e2525',1,'Pontikis\Database\DacapoErrorException\$sql()']]],
   ['_24sql_5fplaceholder',['$sql_placeholder',['../class_pontikis_1_1_database_1_1_dacapo.html#adbcf8b7b39a6f439510a97e25de82fdb',1,'Pontikis::Database::Dacapo']]],
   ['_24use_5fdacapo_5ferror_5fhandler',['$use_dacapo_error_handler',['../class_pontikis_1_1_database_1_1_dacapo.html#a450ac5cdfa07e04c0894159e08cf7a57',1,'Pontikis::Database::Dacapo']]]
 ];
