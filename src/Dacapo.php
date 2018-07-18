@@ -19,7 +19,7 @@ use Exception;
  * @copyright  Christos Pontikis
  * @license    http://opensource.org/licenses/MIT
  *
- * @version    1.0.1 (12 Jun 2018)
+ * @version    1.0.2 (18 Jun 2018)
  */
 class Dacapo
 {
@@ -91,6 +91,8 @@ class Dacapo
     private $fetch_type;
     /** @var string the current sql statement for supported query types */
     private $sql;
+    /** @var array prepared statements params for supported query types */
+    private $bind_params;
     /** @var array types of params to bind with MYSQLi (MySQL only) */
     private $a_types;
     /** @var array|null data returned from SELECT Query */
@@ -170,7 +172,8 @@ class Dacapo
                     break;
             }
 
-            $this->sql = null;
+            $this->sql         = null;
+            $this->bind_params = [];
 
             // Bind parameters. Types: s = string, i = integer, d = double,  b = blob
             $this->a_types = [
@@ -815,25 +818,17 @@ class Dacapo
         // throw ErrorException
         $message = self::ERROR_EXCEPTION_IDENTIFIER . ' ' .
         'ErrNo=' . $err_no . ' (' . $this->getFriendlyErrorType($err_no) . ') ' . $err_str;
-        try {
-            throw new ErrorException(
-                $message,
-                $err_no,
-                $err_no,
-                $err_file,
-                $err_line
-            );
-        } catch (ErrorException $e) {
-            restore_error_handler();
-            throw new DacapoErrorException(
-                $message,
-                $err_no,
-                $err_no,
-                $err_file,
-                $err_line,
-                $e
-            );
-        }
+        $e = new DacapoErrorException(
+            $message,
+            $err_no,
+            $err_no,
+            $err_file,
+            $err_line
+        );
+        $e->setBindParams($this->bind_params);
+        $e->setSQL($this->sql);
+        restore_error_handler();
+        throw $e;
     }
 
     /**
@@ -849,6 +844,8 @@ class Dacapo
         array $bind_params = []
     ) {
         $this->applyDacapoErrorHandler();
+
+        $this->bind_params = $bind_params;
 
         $this->sql           = null;
         $this->data          = null;

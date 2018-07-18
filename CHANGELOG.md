@@ -9,6 +9,7 @@ License MIT https://raw.github.com/pontikis/dacapo/master/MIT_LICENSE
 
 Release 1.0.2 (15 Jul 2018)
 ---------------------------
+* DacapoErrorException custom properties #16
 * Uncaught exception will prevent transaction commit #15
 
 Release 1.0.1 (12 Jun 2018)
