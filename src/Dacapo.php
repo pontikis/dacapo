@@ -19,7 +19,7 @@ use Exception;
  * @copyright  Christos Pontikis
  * @license    http://opensource.org/licenses/MIT
  *
- * @version    1.0.2 (18 Jun 2018)
+ * @version    1.0.2 (18 Jul 2018)
  */
 class Dacapo
 {
