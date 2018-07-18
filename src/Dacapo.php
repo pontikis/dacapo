@@ -826,7 +826,7 @@ class Dacapo
             $err_line
         );
         $e->setBindParams($this->bind_params);
-        $e->setSQL($this->sql);
+        $e->setSQL((string) $this->sql);
         restore_error_handler();
         throw $e;
     }
