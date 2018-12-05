@@ -748,7 +748,7 @@ class Dacapo
                     pg_query($conn, 'SET search_path TO ' . $this->db_schema);
                 }
 
-                pg_query($conn, $sql);
+                pg_query($conn, mysql_escape_string($sql));
                 break;
         }
 
